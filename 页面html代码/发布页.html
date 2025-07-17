@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter%3Awght%40400%3B500%3B700%3B900&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<title>Stitch Design</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+      :root {
+        --primary-color: #3b82f6;
+        --background-color: #f8fafc;
+        --input-background: #ffffff;
+        --text-primary: #111827;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[var(--background-color)]" style='font-family: Inter, "Noto Sans", sans-serif;'>
+<div class="relative flex size-full min-h-screen flex-col justify-between group/design-root overflow-x-hidden">
+<div>
+<header class="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border-color)] bg-[var(--background-color)] px-4 py-3">
+<button class="flex size-10 items-center justify-center text-[var(--text-primary)]">
+<svg fill="currentColor" height="24" viewBox="0 0 256 256" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+</svg>
+</button>
+<h1 class="text-lg font-bold text-[var(--text-primary)]">发布商品</h1>
+<div class="size-10"></div>
+</header>
+<main class="p-4">
+<div class="mb-6">
+<label class="block text-sm font-medium text-[var(--text-secondary)] mb-2" for="product-image">商品图片</label>
+<div class="group relative flex aspect-[16/9] w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-[var(--border-color)] bg-[var(--input-background)] hover:border-[var(--primary-color)]">
+<div class="text-center">
+<svg aria-hidden="true" class="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+<path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<p class="mt-2 text-sm text-[var(--text-secondary)]">点击上传图片</p>
+<p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+</div>
+<input class="sr-only" id="product-image" type="file"/>
+</div>
+</div>
+<form class="space-y-4">
+<div>
+<label class="block text-sm font-medium text-[var(--text-secondary)]" for="product-name">商品名称</label>
+<input class="mt-1 block w-full rounded-lg border-[var(--border-color)] bg-[var(--input-background)] p-3 text-[var(--text-primary)] shadow-sm focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50" id="product-name" placeholder="例如：九成新山地自行车" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-medium text-[var(--text-secondary)]" for="product-description">商品描述</label>
+<textarea class="mt-1 block w-full rounded-lg border-[var(--border-color)] bg-[var(--input-background)] p-3 text-[var(--text-primary)] shadow-sm focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50" id="product-description" placeholder="详细描述一下你的宝贝吧..." rows="4"></textarea>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="block text-sm font-medium text-[var(--text-secondary)]" for="product-price">价格</label>
+<div class="relative mt-1">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+<span class="text-[var(--text-secondary)] sm:text-sm">¥</span>
+</div>
+<input class="block w-full rounded-lg border-[var(--border-color)] bg-[var(--input-background)] p-3 pl-7 text-[var(--text-primary)] shadow-sm focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50" id="product-price" placeholder="0.00" type="text"/>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-[var(--text-secondary)]" for="product-quantity">数量</label>
+<input class="mt-1 block w-full rounded-lg border-[var(--border-color)] bg-[var(--input-background)] p-3 text-[var(--text-primary)] shadow-sm focus:border-[var(--primary-color)] focus:ring focus:ring-[var(--primary-color)] focus:ring-opacity-50" id="product-quantity" placeholder="1" type="number"/>
+</div>
+</div>
+</form>
+</main>
+</div>
+<footer class="sticky bottom-0 border-t border-[var(--border-color)] bg-[var(--background-color)] p-4">
+<button class="flex w-full cursor-pointer items-center justify-center rounded-xl bg-[var(--primary-color)] h-12 px-5 text-base font-bold text-white shadow-lg shadow-blue-500/30 transition-all hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+<span class="truncate">确认发布</span>
+</button>
+</footer>
+</div>
+
+</body></html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans+SC:wght@400;500;700&amp;family=Plus+Jakarta+Sans:wght@400;500;700;800" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<title>二手交易平台</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+      :root {
+        --primary-color: #0b80ee;
+        --secondary-color: #f0f8ff;
+        --text-primary: #111827;
+        --text-secondary: #6b7280;
+        --background-color: #ffffff;
+        --surface-color: #f9fafb;
+        --border-color: #e5e7eb;
+      }
+      body {
+        font-family: "Plus Jakarta Sans", "Noto Sans SC", sans-serif;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[var(--background-color)]">
+<div class="relative mx-auto flex size-full min-h-screen max-w-sm flex-col justify-between group/design-root">
+<div class="flex-grow">
+<header class="sticky top-0 z-10 bg-[var(--background-color)]/80 px-4 pt-4 backdrop-blur-sm">
+<div class="flex items-center justify-between">
+<h1 class="text-2xl font-bold text-[var(--text-primary)]">二手优选</h1>
+<div class="flex items-center gap-2">
+<button class="relative rounded-full p-2 text-[var(--text-secondary)] hover:bg-[var(--surface-color)] hover:text-[var(--text-primary)]">
+<svg fill="currentColor" height="24" viewBox="0 0 256 256" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216ZM48,184c6.33-11.85,16-43.53,16-80a64,64,0,1,1,128,0c0,36.47,9.67,68.15,16,80Z"></path>
+</svg>
+<span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-[var(--primary-color)]"></span>
+</button>
+</div>
+</div>
+<div class="py-3">
+<label class="flex min-w-40 w-full items-center">
+<div class="relative w-full">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[var(--text-secondary)]">
+<svg fill="currentColor" height="20" viewBox="0 0 256 256" width="20" xmlns="http://www.w3.org/2000/svg">
+<path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path>
+</svg>
+</div>
+<input class="form-input w-full rounded-lg border-none bg-[var(--surface-color)] py-2.5 pl-10 pr-4 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:ring-opacity-50" placeholder="搜索闲置好物" type="search"/>
+</div>
+</label>
+</div>
+</header>
+<main class="px-4">
+<h2 class="text-xl font-bold text-[var(--text-primary)] pb-3">分类</h2>
+<div class="grid grid-cols-4 gap-4 text-center">
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--secondary-color)] text-[var(--primary-color)] transition-colors group-hover:bg-[var(--primary-color)] group-hover:text-white">
+<svg fill="currentColor" height="32" viewBox="0 0 256 256" width="32" xmlns="http://www.w3.org/2000/svg"><path d="M232,80H208V64a16,16,0,0,0-16-16H160a16,16,0,0,0-16,16v16H112V64a16,16,0,0,0-16-16H64A16,16,0,0,0,48,64v16H24a8,8,0,0,0,0,16H48v40H24a8,8,0,0,0,0,16H48v40H24a8,8,0,0,0,0,16H48v16a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V192h32v16a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16V192h24a8,8,0,0,0,0-16H208V136h24a8,8,0,0,0,0-16H208V96h24a8,8,0,0,0,0-16ZM96,64h16V208H96a16,16,0,0,0-16-16V80A16,16,0,0,0,96,64Zm96,128h-16V64h16a16,16,0,0,0,16,16V176A16,16,0,0,0,192,192Z"></path></svg>
+</div>
+<p class="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">时尚服饰</p>
+</a>
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--secondary-color)] text-[var(--primary-color)] transition-colors group-hover:bg-[var(--primary-color)] group-hover:text-white">
+<svg fill="currentColor" height="32" viewBox="0 0 256 256" width="32" xmlns="http://www.w3.org/2000/svg"><path d="M216,40H40A16,16,0,0,0,24,56V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V72H40V56ZM40,192V88H216l.06,104Z"></path></svg>
+</div>
+<p class="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">数码产品</p>
+</a>
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--secondary-color)] text-[var(--primary-color)] transition-colors group-hover:bg-[var(--primary-color)] group-hover:text-white">
+<svg fill="currentColor" height="32" viewBox="0 0 256 256" width="32" xmlns="http://www.w3.org/2000/svg"><path d="M234.81,96.79a16,16,0,0,0-15.09-9.15l-49-3.3A15.93,15.93,0,0,0,158,87.66l-24.18,43.52a8,8,0,0,1-11.5,1.75l-24.62-17a16,16,0,0,0-17.76.6L52.88,138.8a16,16,0,0,0-5.69,21.57L60,186.29a16,16,0,0,0,21.3,10.63l110.3-51.48a16,16,0,0,0,10.74-21.43l-9.18-28.72,39.2-2.61a16,16,0,0,0,12.45-18.42ZM201.2,142.06,90.9,193.54a.17.17,0,0,1-.1.05,1.8,1.8,0,0,1-2.37-1.18l-12.8-25.92,26-17.9,103,48.16a1.76,1.76,0,0,1,1.18,2.2ZM79.52,126.91l24.62-17a1.86,1.86,0,0,1,2,.07l24.18,43.53-23,15.84Zm108.8-49.52L167.4,80.7l9.18,28.73-30.86-14.43-24.2-43.53a.17.17,0,0,1,0-.1A1.79,1.79,0,0,1,123,50.19l49,3.3a1.77,1.77,0,0,1,2.15,1.38l6.83,21.34Z"></path></svg>
+</div>
+<p class="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">家居用品</p>
+</a>
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--secondary-color)] text-[var(--primary-color)] transition-colors group-hover:bg-[var(--primary-color)] group-hover:text-white">
+<svg fill="currentColor" height="32" viewBox="0 0 256 256" width="32" xmlns="http://www.w3.org/2000/svg"><path d="M216,40H80A16,16,0,0,0,64,56V216a8,8,0,0,0,16,0V56H216a8,8,0,0,0,0-16Zm-8,64a8,8,0,0,1-8,8H48a8,8,0,0,1,0-16H200A8,8,0,0,1,208,104Zm0,64a8,8,0,0,1-8,8H48a8,8,0,0,1,0-16H200A8,8,0,0,1,208,168Z"></path></svg>
+</div>
+<p class="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">图书文具</p>
+</a>
+</div>
+<h2 class="pt-8 text-xl font-bold text-[var(--text-primary)] pb-3">为您推荐</h2>
+<div class="grid grid-cols-2 gap-4 pb-4">
+<div class="group flex flex-col gap-2">
+<div class="relative overflow-hidden rounded-lg">
+<div class="aspect-square w-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBQpv3HLD3MUyfrvl5yL_XddV734YRTYQ_Ag_poVNVfkN4fyWuLMQXlLovScxHHPLW7fdGnzNGHbBDXYLghGTRglbI4mPw8fWkW71K6Cj1_uxI3OWIwaxWv4Nj37P2tctB9Lv0HqRKO7GQp1nMtxLqcd6JoPeGmmtVJGqbEoJN5TQaguw0e7Fq-aQ2B78e_tVVyIosWM1zGEi36hyzio_DsDVsMTC1CqrpDCGmJXlb8y65A6f8mqFXMqSBVIqg3sfI8cEW_7qK3wAo");'></div>
+<div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent p-2">
+<p class="font-bold text-lg text-white">¥85</p>
+</div>
+</div>
+<div>
+<p class="truncate font-medium text-[var(--text-primary)]">全新时尚连衣裙</p>
+<p class="text-sm text-[var(--text-secondary)]">尺码 M, 仅试穿</p>
+</div>
+</div>
+<div class="group flex flex-col gap-2">
+<div class="relative overflow-hidden rounded-lg">
+<div class="aspect-square w-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDwfBqdLcD8V6u4zpa7fbMtDRUhOtOdLgrSs1eOFSwqM1r6Ka0VTO4jBTVkKKsmxrtBkxoHaTTakYmXLADXh9IR3HpNXT8PpQZBHrlz9t5WYdn_pfi2D6p1dpNdiaYfzu-jlnwD78p-N66z9Hh-vz_5h6JLREvb4ssxwGpEZ2tRzUpQo_BQbV0rw6MesVJv7aARDywrigXFBJ0zR-f7q3WaeRXVN3aMDPvc-NEoMT4s5MQK7WwDeFEaiR3XCTbBZRUcIIe_1z3SM5c");'></div>
+<div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent p-2">
+<p class="font-bold text-lg text-white">¥1200</p>
+</div>
+</div>
+<div>
+<p class="truncate font-medium text-[var(--text-primary)]">九成新品牌相机</p>
+<p class="text-sm text-[var(--text-secondary)]">配件齐全, 使用很少</p>
+</div>
+</div>
+<div class="group flex flex-col gap-2">
+<div class="relative overflow-hidden rounded-lg">
+<div class="aspect-square w-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBKRAY1YY0qSVte17TzHiKziFkevogNbIlEZvJSEwe56YDhhfCcHsfz13AFovYcoQT9_t9lm4WVuHDv4rI5VUxom97Naya3EyjEgp5eTtTX0mIrryKd-HLCDLgtdWMqmdAizt8UCxmr_zqHDwqSDeCOcfZYKDsr52Op-zYT24y0VVx4Mjl4THi6QWbbXvKOsQm820AxxRTiCOSuji7Q3Vwm3C6R6HCn31TKnpcR3Oz_EfcfqczZJBBHXYzBPgE8Dki8Me7VI5TTYlA");'></div>
+<div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent p-2">
+<p class="font-bold text-lg text-white">¥150</p>
+</div>
+</div>
+<div>
+<p class="truncate font-medium text-[var(--text-primary)]">北欧风简约台灯</p>
+<p class="text-sm text-[var(--text-secondary)]">设计感十足, 几乎全新</p>
+</div>
+</div>
+<div class="group flex flex-col gap-2">
+<div class="relative overflow-hidden rounded-lg">
+<div class="aspect-square w-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDhzWLO6PPOFX2tVmmCL1tbpKWk9lZZDWV-Ur_NmaCjexy_dlryap2Gl4Ph2y_Lg9FDojKgiproO7ArrmPm9HtIRBDjyn76dC4X_Y1bxiseFrmFNAQk5JaBGx_dvXqFF1n1KtxeGvqwFB0cGJ0qczYgYAviet87l9uPLhAjtnqCzQjQgT01_H-MBLNtn2E3roB0SFTQqW8KRD8OAmnVCHOMYEmgoOeSdQ_xE-pi45sJ9oMbP6aIcJt2ijouPQQubreWi2TH9DAzhtU");'></div>
+<div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent p-2">
+<p class="font-bold text-lg text-white">¥30</p>
+</div>
+</div>
+<div>
+<p class="truncate font-medium text-[var(--text-primary)]">经典文学名著套装</p>
+<p class="text-sm text-[var(--text-secondary)]">无笔记, 保存完好</p>
+</div>
+</div>
+</div>
+</main>
+</div>
+<footer class="sticky bottom-0 border-t border-[var(--border-color)] bg-[var(--background-color)]/80 px-4 pb-2 pt-2 backdrop-blur-sm">
+<div class="flex items-center justify-around">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-[var(--primary-color)]" href="#">
+<div class="flex h-7 items-center justify-center">
+<svg fill="currentColor" height="24" viewBox="0 0 256 256" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M224,115.55V208a16,16,0,0,1-16,16H168a16,16,0,0,1-16-16V168a8,8,0,0,0-8-8H112a8,8,0,0,0-8,8v40a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V115.55a16,16,0,0,1,5.17-11.78l80-75.48.11-.11a16,16,0,0,1,21.53,0,1.14,1.14,0,0,0,.11.11l80,75.48A16,16,0,0,1,224,115.55Z"></path>
+</svg>
+</div>
+<p class="text-xs font-bold tracking-wide">首页</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-[var(--text-secondary)] hover:text-[var(--primary-color)]" href="#">
+<div class="relative flex h-14 w-14 -translate-y-4 items-center justify-center rounded-full bg-[var(--primary-color)] text-white shadow-lg shadow-[var(--primary-color)]/50">
+<svg fill="currentColor" height="32" viewBox="0 0 256 256" width="32" xmlns="http://www.w3.org/2000/svg"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path></svg>
+</div>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-[var(--text-secondary)] hover:text-[var(--primary-color)]" href="#">
+<div class="flex h-7 items-center justify-center">
+<svg fill="currentColor" height="24" viewBox="0 0 256 256" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M128,24A104,104,0,0,0,36.18,176.88L24.83,211a16,16,0,0,0,20.13,20.13l34.12-11.35A104.09,104.09,0,1,0,128,24Zm0,192a88.08,88.08,0,0,1-45.25-13.53,8,8,0,0,0-7.66-.41L41,216,55.92,181.9a8,8,0,0,0-.4-7.66A88,88,0,1,1,128,216Zm40-88a12,12,0,1,1-12-12A12,12,0,0,1,168,128Zm-52-12a12,12,0,1,0-12,12A12,12,0,0,0,116,116Z"></path>
+</svg>
+</div>
+<p class="text-xs font-medium tracking-wide">消息</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-[var(--text-secondary)] hover:text-[var(--primary-color)]" href="#">
+<div class="flex h-7 items-center justify-center">
+<svg fill="currentColor" height="24" viewBox="0 0 256 256" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M128,24a104,104,0,1,0,104,104A104.11,104.11,0,0,0,128,24ZM74.08,197.5a64.4,64.4,0,0,1,107.84,0,87.83,87.83,0,0,1-107.84,0ZM96,128a32,32,0,1,1,32,32A32,32,0,0,1,96,128Zm95.27,62.72a72.44,72.44,0,0,0-50-48.34,48,48,0,1,0-58.54,0,72.44,72.44,0,0,0-50,48.34,88,88,0,1,1,158.54,0Z"></path>
+</svg>
+</div>
+<p class="text-xs font-medium tracking-wide">我的</p>
+</a>
+</div>
+</footer>
+</div>
+
+</body></html>
