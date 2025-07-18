@@ -1,6 +1,9 @@
 {
 	"pages": [
-		// 首页
+		// 第一个页面会作为首页。
+		// {
+		// 	"path": "pages/index"
+		// },
 		{
 			"path": "pages/home"
 
