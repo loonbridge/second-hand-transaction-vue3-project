@@ -12,11 +12,12 @@ The core code of the project is located in the `src` directory.
 
 - **`src/main.ts`**: The main entry file of the application, responsible for creating the Vue application instance and mounting it.
 - **`src/App.vue`**: The root component of the application, which can be used to define global styles and application-level lifecycle.
-- **`src/pages/`**: Contains all the pages of the application. Each page is usually a separate directory containing `.vue` files and related static resources.
+- **`src/pages/`**: Contains all the pages of the application. Each page is usually a separate `.vue` file.
 - **`src/components/`**: Stores reusable business components.
-- **`src/api/`**: Encapsulates the network request module of the application, and defines the API for communicating with the backend.
-- **`src/utils/`**: Stores various utility functions, such as date formatting, request encapsulation, etc.
-- **`src/static/`**: Stores static resource files, such as images, fonts, etc.
+- **`src/api/`**: Encapsulates the network request module of the application. It contains API definitions for different modules (auth, products, etc.), type definitions, and a mock module for development.
+- **`src/config/`**: Contains project configuration files.
+- **`src/utils/`**: Stores various utility functions.
+- **`src/static/`**: Stores static resource files, such as images, fonts, and global styles.
 - **`pages.json`**: This file is used to configure the pages of the entire application, including the page path, window style, tab bar, etc.
 - **`manifest.json`**: The configuration file of the application, which contains the application's name, icon, permissions, and other multi-platform specific configurations.
 
