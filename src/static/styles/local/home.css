@@ -56,7 +56,6 @@ height: 24;
 /* 搜索框 */
 .search-container {
   padding: 15px 20px;
-  background-color: #FFFFFF;
 }
 
 .search-box {
@@ -176,3 +175,4 @@ height: 24;
   color: #999999;
   display: block;
 }
+

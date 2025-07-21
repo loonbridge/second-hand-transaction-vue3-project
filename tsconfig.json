@@ -4,10 +4,11 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
     },
-    "lib": ["esnext", "dom"],
-    "types": ["@dcloudio/types", "node"]
+    "lib": ["esnext", "dom","ES6"],
+    "types": ["@dcloudio/types", "node",],
+    
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
 }
