@@ -4,7 +4,7 @@
     <view class="grid-container">
       <!-- Looping through categories to display them in a grid -->
       <view class="category-item" v-for="(item, index) in categories" :key="index">
-        <view class="icon-wrapper" @click="hanleCategoryClick()">
+        <view class="icon-wrapper" @click="handleCategoryClick(item)">
           <!-- Using uni-icons as placeholders, styled to match the prototype -->
           <uni-icons :type="item.iconUrl" size="32" color="#0b80ee" @click=""></uni-icons>
         </view>

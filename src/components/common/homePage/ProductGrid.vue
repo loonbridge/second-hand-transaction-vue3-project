@@ -3,13 +3,13 @@
     <text class="section-title">为您推荐</text>
     <!-- A simple grid layout for the products -->
     <view class="product-grid">
-      <ProductCard v-for="item in products" :key="item.id" :product="item" />
+      <ProductCard v-for="item in products" :key="item.productId" :product="item" />
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ProductSummary } from '@/api/types/productTypes';
+import type { ProductSummary } from '@/api/types/productTypes';
 import ProductCard from './ProductCard.vue';
 
 // No need to split into columns manually with CSS grid

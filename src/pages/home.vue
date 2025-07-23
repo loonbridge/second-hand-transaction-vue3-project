@@ -55,6 +55,11 @@ import { ref } from 'vue';
 
 const searchValue = ref('');
 
+const handleBellIconClick = () => {
+  console.log('Notification bell clicked');
+  // TODO: 实现通知铃铛点击逻辑，比如跳转到通知页面
+};
+
 // Using more descriptive icons from uni-icons library
 const categories = ref<Category[]>([
   { name: '时尚服饰', iconUrl: 'cart-filled', categoryId: "1" },
