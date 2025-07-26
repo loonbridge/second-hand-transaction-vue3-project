@@ -12,10 +12,9 @@ interface Config{
 
 const config: Record<string,Config> = {
     development: {
-        baseURL: 'http://localhost:3000',
+        baseURL: 'http://localhost:8080',
         timeout: 5000,
     },
-
 
     production: {
         baseURL: 'https://api.example.com',

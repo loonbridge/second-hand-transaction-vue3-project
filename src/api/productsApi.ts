@@ -41,11 +41,18 @@ const createProduct = (data: CreateProductPayload) => {
             url: `${config.baseURL}/products`,
             method: 'POST',
             data,
-            success: (response) => {
-                resolve(response.data as ProductDetail);
+            header: {
+                'Content-Type': 'application/json'
+            },
+            success: (response: any) => {
+                if (response.statusCode === 201 || response.statusCode === 200) {
+                    resolve(response.data as ProductDetail);
+                } else {
+                    reject(new Error(`HTTP ${response.statusCode}: ${response.data?.message || '发布失败'}`));
+                }
             },
             fail: (error) => {
-                reject(error);
+                reject(new Error('网络请求失败: ' + error.errMsg));
             }
         });
     });
@@ -87,11 +94,15 @@ const getCategories = () => {
         uni.request({
             url: `${config.baseURL}/categories`,
             method: 'GET',
-            success: (response) => {
-                resolve(response.data as Category[]);
+            success: (response: any) => {
+                if (response.statusCode === 200) {
+                    resolve(response.data as Category[]);
+                } else {
+                    reject(new Error(`HTTP ${response.statusCode}: ${response.data?.message || '获取分类失败'}`));
+                }
             },
             fail: (error) => {
-                reject(error);
+                reject(new Error('网络请求失败: ' + error.errMsg));
             }
         });
     });

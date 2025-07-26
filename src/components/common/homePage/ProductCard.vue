@@ -24,11 +24,16 @@
 </template>
 
 <script setup lang="ts">
-import { ProductSummary } from '@/api/types/productTypes';
+import type { ProductSummary } from '@/api/types/productTypes';
 
 defineProps<{
-    product:ProductSummary
+    product: ProductSummary
 }>();
+
+const handleProductImageClick = () => {
+  console.log('Product image clicked');
+  // TODO: 实现产品图片点击逻辑，比如跳转到产品详情页
+};
 </script>
 
 <style scoped lang="scss">

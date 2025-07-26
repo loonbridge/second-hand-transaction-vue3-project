@@ -37,14 +37,13 @@ export interface CreateProductPayload {
     description: string;
     price: number;
     stock: number;
-    
-    categoryId: string;
+    categoryId: number; // 修改为number类型，对应数据库的Long类型
     imageUrls: string[];
 }
 
 
 export interface Category{
-    categoryId: string;
+    categoryId: number; // 修改为number类型，对应数据库的Long类型
     name: string;
     iconUrl: string;
 }
