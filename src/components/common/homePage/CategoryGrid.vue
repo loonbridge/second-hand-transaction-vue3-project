@@ -20,6 +20,15 @@ import type { Category } from '@/api/types/productTypes';
 defineProps<{
     categories: Category[],
 }>();
+
+const emit = defineEmits<{
+  categoryClick: [category: Category]
+}>();
+
+const handleCategoryClick = (category: Category) => {
+  console.log('分类点击:', category);
+  emit('categoryClick', category);
+};
 </script>
 
 <style scoped lang="scss">

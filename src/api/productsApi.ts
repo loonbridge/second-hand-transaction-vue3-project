@@ -12,15 +12,27 @@ import type { Category, CreateProductPayload, GetProductResponse, GetProductsPar
 
 const getProducts = (params:GetProductsParams) => {
     return new Promise<GetProductResponse>((resolve, reject) => {
+        console.log('调用商品列表API:', `${config.baseURL}/products`, params);
+
         uni.request({
             url: `${config.baseURL}/products`,
             method: 'GET',
             data: params,
+            header: {
+                'Content-Type': 'application/json'
+            },
             success: (response) => {
-                resolve(response.data as GetProductResponse);
+                console.log('商品列表API响应:', response);
+
+                if (response.statusCode === 200) {
+                    resolve(response.data as GetProductResponse);
+                } else {
+                    reject(new Error(`获取商品列表失败: HTTP ${response.statusCode}`));
+                }
             },
             fail: (error) => {
-                reject(error);
+                console.error('商品列表API请求失败:', error);
+                reject(new Error(`网络请求失败: ${error.errMsg || '未知错误'}`));
             }
         });
     });
@@ -91,18 +103,26 @@ const getProductById = (id: string) => {
 
 const getCategories = () => {
     return new Promise<Category[]>((resolve, reject) => {
+        console.log('调用分类列表API:', `${config.baseURL}/categories`);
+
         uni.request({
             url: `${config.baseURL}/categories`,
             method: 'GET',
+            header: {
+                'Content-Type': 'application/json'
+            },
             success: (response: any) => {
+                console.log('分类列表API响应:', response);
+
                 if (response.statusCode === 200) {
                     resolve(response.data as Category[]);
                 } else {
-                    reject(new Error(`HTTP ${response.statusCode}: ${response.data?.message || '获取分类失败'}`));
+                    reject(new Error(`获取分类失败: HTTP ${response.statusCode}: ${response.data?.message || '未知错误'}`));
                 }
             },
             fail: (error) => {
-                reject(new Error('网络请求失败: ' + error.errMsg));
+                console.error('分类列表API请求失败:', error);
+                reject(new Error(`网络请求失败: ${error.errMsg || '未知错误'}`));
             }
         });
     });

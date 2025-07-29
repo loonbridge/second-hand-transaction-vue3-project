@@ -4,7 +4,7 @@
     <template #header>
       <view class="login-header">
         <text class="login-title">欢迎来到二手优选</text>
-        <text class="login-subtitle">请使用微信账号登录</text>
+        <!-- <text class="login-subtitle">请使用微信账号登录</text> -->
       </view>
     </template>
 
@@ -143,12 +143,14 @@ const showPrivacy = () => {
   color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
-
+/*
 .login-subtitle {
   display: block;
   font-size: 1rem; // 16px
   color: var(--text-secondary);
 }
+
+*/
 
 .login-content {
   display: flex;
