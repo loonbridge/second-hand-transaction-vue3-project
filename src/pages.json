@@ -7,13 +7,21 @@
 		}
 	},
 	"pages": [
+		// 登录页面
+		{
+			"path": "pages/login",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"navigationStyle": "custom"
+			}
+		},
 		// 第一个页面会作为首页。
 		// {
 		// 	"path": "pages/index"
 		// },
 		{
 			"path": "pages/home"
-			
+
 
 		}
 		// 消息通知
@@ -37,7 +45,7 @@
 		}
 		,
 		// 商品管理
-		
+
 		{
 			"path": "pages/order_manage"
 		}

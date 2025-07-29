@@ -113,5 +113,6 @@ const getChosenImagePaths = (maxCount: number) => {
 
 
 
-export { getChosenImagePaths, uploadImage, checkFileExists };
+// 确保 checkFileExists 被正确导出，防止 tree-shaking 优化
+export { checkFileExists, getChosenImagePaths, uploadImage };
 
