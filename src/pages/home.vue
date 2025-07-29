@@ -93,6 +93,8 @@ const handleCategoryClick = (category: Category) => {
   loadProducts({ categoryId: category.categoryId.toString() });
 };
 
+
+
 // 加载分类数据
 const loadCategories = async () => {
   try {
@@ -118,6 +120,7 @@ const loadCategories = async () => {
 };
 
 // 加载商品数据
+//TODO:需要优化，一次只展示获取展示size个，当下拉，当前获取的列表展示完后，下拉刷新时继续渲染新的列表，优化体验速度。
 const loadProducts = async (params: { query?: string; categoryId?: string } = {}) => {
   try {
     isLoading.value = true;
@@ -141,6 +144,8 @@ const loadProducts = async (params: { query?: string; categoryId?: string } = {}
     isLoading.value = false;
   }
 };
+
+
 
 // 页面初始化
 onMounted(() => {

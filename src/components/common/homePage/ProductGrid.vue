@@ -41,5 +41,9 @@ defineProps<{
   grid-template-columns: repeat(2, 1fr); // Two-column grid
   gap: 1rem; // 16px gap
   padding-bottom: 1rem; // Add some space at the bottom
+  width: 100%; // 确保占满宽度
+
+  // 确保所有商品都能正常显示
+  grid-auto-rows: auto;
 }
 </style>

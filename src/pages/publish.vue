@@ -134,10 +134,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
 import { getChosenImagePaths, uploadImage } from '@/api/filesApi';
 import { createProduct, getCategories } from '@/api/productsApi';
-import type { CreateProductPayload, Category } from '@/api/types/productTypes';
+import type { Category, CreateProductPayload } from '@/api/types/productTypes';
+import { computed, onMounted, ref } from 'vue';
 
 // 响应式数据
 const imageList = ref<string[]>([]);
@@ -646,6 +646,10 @@ const clearDraft = () => {
     console.error('清除草稿失败:', error);
   }
 };
+
+
+
+
 
 // 页面初始化
 onMounted(() => {
