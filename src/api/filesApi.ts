@@ -6,6 +6,7 @@
  */
 
 import config from "@/config";
+import { getToken } from "@/utils/auth";
 import type { UploadResponse } from "./types/fileTypes";
 
 const uploadImage = (tempFilePath: string): Promise<UploadResponse> => {
@@ -29,12 +30,22 @@ const uploadImage = (tempFilePath: string): Promise<UploadResponse> => {
         });
 
         const performUpload = () => {
+            const token = getToken();
+
+            if (!token) {
+                reject(new Error('未登录，请先登录'));
+                return;
+            }
+
             uni.uploadFile({
                 url: `${config.baseURL}/files/upload`,
                 fileType: "image",
                 filePath: tempFilePath,
                 name: 'productImage',
                 timeout: 30000, // 30秒超时
+                header: {
+                    'Authorization': `Bearer ${token}`
+                },
                 success: (response) => {
                     console.log('上传响应:', response);
 
@@ -45,6 +56,8 @@ const uploadImage = (tempFilePath: string): Promise<UploadResponse> => {
                         } catch (parseError) {
                             reject(new Error('服务器响应格式错误'));
                         }
+                    } else if (response.statusCode === 401) {
+                        reject(new Error('认证失败，请重新登录'));
                     } else {
                         reject(new Error(`上传失败，状态码: ${response.statusCode}`));
                     }

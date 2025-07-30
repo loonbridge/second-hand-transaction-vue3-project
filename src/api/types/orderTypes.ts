@@ -7,12 +7,33 @@ export interface OrderItem {
     price: number;
     quantity: number;
 }
-export interface OrderSummary {
+
+// 后端实际返回的订单数据结构
+export interface OrderSummaryFromAPI {
     orderId: string;
+    priceAtPurchase: number | null;
+    productId: string;
+    productMainImageUrl: string;
+    productTitle: string;
+    quantity: number;
     status: string;
     totalPrice: number;
+}
+
+// 前端使用的订单数据结构
+export interface OrderSummary {
+    orderId: string;
+    status: OrderStatus;
+    totalPrice: number;
     productCount: number;
-    orderItems: OrderItem;
+    orderItems: OrderItem[];
+}
+
+// API响应的分页数据结构
+export interface OrderListResponse {
+    items: OrderSummaryFromAPI[];
+    totalElements: number;
+    totalPages: number;
 }
 
 /**
@@ -25,7 +46,7 @@ export interface CreateOrderPayload {
 
 
 
-export type OrderStatus = 'ToPay' | 'ToShip' | 'ToReceive' | 'Completed' | 'Canceled';
+export type OrderStatus = 'ToPay' | 'ToShip' | 'ToReceive' | 'Completed' | 'Canceled' | 'TO_PAY' | 'TO_SHIP' | 'TO_RECEIVE' | 'COMPLETED' | 'CANCELLED';
 
 /**
  * 获取我的订单列表的查询参数对象

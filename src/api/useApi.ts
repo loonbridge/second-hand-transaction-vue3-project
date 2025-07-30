@@ -6,19 +6,37 @@
  */
 
 import config from "@/config";
+import { getToken } from "@/utils/auth";
 import type { AddFavoritePayload, UserProfile } from "./types/userTypes";
 
 const getMyProfile = ():Promise<UserProfile> => {
 
     return new  Promise((resolve, reject) => {
+        const token = getToken();
+
+        if (!token) {
+            reject(new Error('未登录，请先登录'));
+            return;
+        }
+
         uni.request({
             url: `${config.baseURL}/users/me`,
             method: 'GET',
+            header: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             success: (response) => {
-                resolve(response.data as UserProfile);
+                if (response.statusCode === 200) {
+                    resolve(response.data as UserProfile);
+                } else if (response.statusCode === 401) {
+                    reject(new Error('认证失败，请重新登录'));
+                } else {
+                    reject(new Error(`获取用户信息失败: HTTP ${response.statusCode}`));
+                }
             },
             fail: (error) => {
-                reject(error);
+                reject(new Error(`网络请求失败: ${error.errMsg || '未知错误'}`));
             }
         });
     });
@@ -34,20 +52,37 @@ const getMyProfile = ():Promise<UserProfile> => {
 
 const addFavorite = (data:AddFavoritePayload) => {
     return  new Promise<void>((resolve, reject) => {
+        const token = getToken();
+
+        if (!token) {
+            reject(new Error('未登录，请先登录'));
+            return;
+        }
+
         uni.request({
             url: `${config.baseURL}/users/me/favorites`,
             method: 'POST',
             data,
-            success: () => {
-                resolve();
+            header: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            success: (response) => {
+                if (response.statusCode === 200 || response.statusCode === 201) {
+                    resolve();
+                } else if (response.statusCode === 401) {
+                    reject(new Error('认证失败，请重新登录'));
+                } else {
+                    reject(new Error(`添加收藏失败: HTTP ${response.statusCode}`));
+                }
             },
             fail: (error) => {
-                reject(error);
+                reject(new Error(`网络请求失败: ${error.errMsg || '未知错误'}`));
             }
         });
     });
-    
-    
+
+
 }
 
 
@@ -61,14 +96,31 @@ const addFavorite = (data:AddFavoritePayload) => {
 
 const removeFavorite = (productId: string) => {
     return new Promise<void>((resolve, reject) => {
+        const token = getToken();
+
+        if (!token) {
+            reject(new Error('未登录，请先登录'));
+            return;
+        }
+
         uni.request({
             url: `${config.baseURL}/users/me/favorites/${productId}`,
             method: 'DELETE',
-            success: () => {
-                resolve();
+            header: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            success: (response) => {
+                if (response.statusCode === 200 || response.statusCode === 204) {
+                    resolve();
+                } else if (response.statusCode === 401) {
+                    reject(new Error('认证失败，请重新登录'));
+                } else {
+                    reject(new Error(`取消收藏失败: HTTP ${response.statusCode}`));
+                }
             },
             fail: (error) => {
-                reject(error);
+                reject(new Error(`网络请求失败: ${error.errMsg || '未知错误'}`));
             }
         });
     });

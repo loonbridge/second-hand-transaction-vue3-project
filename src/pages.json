@@ -14,22 +14,47 @@
 			}
 		},
 		{
-			"path": "pages/home"
+			"path": "pages/home",
+			"style": {
+				"navigationStyle": "custom"
+			}
 		},
 		{
-			"path": "pages/notifications"
+			"path": "pages/notifications",
+			"style": {
+				"navigationStyle": "custom"
+			}
 		},
 		{
-			"path": "pages/product"
+			"path": "pages/product",
+			"style": {
+				"navigationStyle": "custom"
+			}
 		},
 		{
-			"path": "pages/profile"
+			"path": "pages/profile",
+			"style": {
+				"navigationStyle": "custom"
+			}
 		},
 		{
-			"path": "pages/publish"
+			"path": "pages/publish",
+			"style": {
+				"navigationStyle": "custom"
+			}
 		},
 		{
-			"path": "pages/order_manage"
+			"path": "pages/order_manage",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/payment_test",
+			"style": {
+				"navigationBarTitleText": "支付测试",
+				"navigationStyle": "custom"
+			}
 		}
 	],
 	"tabBar": {
@@ -45,6 +70,10 @@
 			{
 				"text": "发布",
 				"pagePath": "pages/publish"
+			},
+			{
+				"text": "支付测试",
+				"pagePath": "pages/payment_test"
 			},
 			{
 				"text": "消息",
