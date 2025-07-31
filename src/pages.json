@@ -6,12 +6,9 @@
 		}
 	},
 	"pages": [
+
 		{
-			"path": "pages/login",
-			"style": {
-				"navigationBarTitleText": "登录",
-				"navigationStyle": "custom"
-			}
+			"path": "pages/login"
 		},
 		{
 			"path": "pages/home"
@@ -32,11 +29,12 @@
 			"path": "pages/order_manage"
 		}
 	],
+	
 	"tabBar": {
-		"color": "#6b7280",
-		"selectedColor": "#0b80ee",
-		"backgroundColor": "#ffffff",
-		"borderStyle": "white",
+		"color": "#666666",
+		"selectedColor": "#1296db",
+		"backgroundColor": "#FFFFFF",
+		"borderStyle": "black",
 		"list": [
 			{
 				"text": "首页",

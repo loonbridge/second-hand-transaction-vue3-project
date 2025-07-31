@@ -15,6 +15,13 @@ const uploadImage = (tempFilePath: string): Promise<UploadResponse> => {
             return;
         }
 
+        // 如果已经是http开头，可能是服务器URL，直接返回
+        if (tempFilePath.startsWith('http')) {
+            console.log('使用已有的URL:', tempFilePath);
+            resolve({url: tempFilePath});
+            return;
+        }
+
         console.log('开始上传图片:', tempFilePath);
 
         // 先检查文件是否存在
@@ -24,16 +31,31 @@ const uploadImage = (tempFilePath: string): Promise<UploadResponse> => {
                 return;
             }
 
+            // 获取存储的token
+            const token = uni.getStorageSync('token');
+            if (!token) {
+                uni.showToast({
+                    title: '请先登录',
+                    icon: 'none',
+                    duration: 2000
+                });
+                reject(new Error('未登录，请先登录'));
+                return;
+            }
+
             // 文件存在，开始上传
-            performUpload();
+            performUpload(token);
         });
 
-        const performUpload = () => {
+        const performUpload = (token: string) => {
             uni.uploadFile({
                 url: `${config.baseURL}/files/upload`,
                 fileType: "image",
                 filePath: tempFilePath,
-                name: 'productImage',
+                name: 'file', // 修改为'file'以匹配后端接口参数
+                header: {
+                    'Authorization': `Bearer ${token}` // 添加认证token
+                },
                 timeout: 30000, // 30秒超时
                 success: (response) => {
                     console.log('上传响应:', response);
@@ -41,10 +63,35 @@ const uploadImage = (tempFilePath: string): Promise<UploadResponse> => {
                     if (response.statusCode === 200) {
                         try {
                             const result = JSON.parse(response.data) as UploadResponse;
+                            
+                            // 检查返回的URL是否包含正确的日期路径
+                            // 注意：如果URL包含未来日期可能是系统时间设置问题
+                            console.log('服务器返回的文件URL:', result.url);
+                            
+                            // 存储上传成功的图片URL，以便刷新后恢复
+                            try {
+                                const uploadedImages = uni.getStorageSync('uploaded_images') || [];
+                                uploadedImages.push(result.url);
+                                // 只保留最近50张图片URL
+                                if (uploadedImages.length > 50) {
+                                    uploadedImages.shift();
+                                }
+                                uni.setStorageSync('uploaded_images', uploadedImages);
+                            } catch (e) {
+                                console.warn('缓存上传图片URL失败:', e);
+                            }
+                            
                             resolve(result);
                         } catch (parseError) {
                             reject(new Error('服务器响应格式错误'));
                         }
+                    } else if (response.statusCode === 401) {
+                        uni.showToast({
+                            title: '登录已过期，请重新登录',
+                            icon: 'none',
+                            duration: 2000
+                        });
+                        reject(new Error('未授权，请重新登录'));
                     } else {
                         reject(new Error(`上传失败，状态码: ${response.statusCode}`));
                     }
@@ -63,6 +110,22 @@ const uploadImage = (tempFilePath: string): Promise<UploadResponse> => {
  */
 const checkFileExists = (filePath: string): Promise<boolean> => {
     return new Promise((resolve) => {
+        // 替换废弃的API，使用推荐的getFileSystemManager方法
+        try {
+            const fs = uni.getFileSystemManager();
+            fs.getFileInfo({
+                filePath: filePath,
+                success: () => {
+                    resolve(true);
+                },
+                fail: (err) => {
+                    console.warn('文件检查失败:', err);
+                    resolve(false);
+                }
+            });
+        } catch (err) {
+            console.warn('文件系统API调用失败:', err);
+            // 如果API不可用，退回到旧方法或直接假设文件存在
         uni.getFileInfo({
             filePath: filePath,
             success: () => {
@@ -72,6 +135,7 @@ const checkFileExists = (filePath: string): Promise<boolean> => {
                 resolve(false);
             }
         });
+        }
     });
 };
 
