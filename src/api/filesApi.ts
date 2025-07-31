@@ -7,7 +7,7 @@
 
 import config from "@/config";
 import { getToken } from "@/utils/auth";
-import type { UploadResponse } from "./types/fileTypes";
+import type { UploadResponse, FileUploadResponseVO } from "./types/fileTypes";
 
 const uploadImage = (tempFilePath: string): Promise<UploadResponse> => {
     return new Promise((resolve, reject) => {
@@ -176,6 +176,109 @@ const getChosenImagePaths = (maxCount: number) => {
 
 
 
+/**
+ * 上传多个图片文件到 POST /files/upload 接口
+ * 由于uni.uploadFile限制，我们逐个上传文件到同一个接口
+ * @param tempFilePaths 临时文件路径数组
+ * @returns Promise<FileUploadResponseVO> 返回包含所有图片URL的对象
+ */
+const uploadMultipleImages = (tempFilePaths: string[]): Promise<FileUploadResponseVO> => {
+    return new Promise(async (resolve, reject) => {
+        if (!tempFilePaths || tempFilePaths.length === 0) {
+            reject(new Error('文件路径数组不能为空'));
+            return;
+        }
+
+        console.log('开始批量上传图片到 /files/upload:', tempFilePaths);
+
+        // 获取token
+        const token = getToken();
+        if (!token) {
+            uni.showToast({
+                title: '请先登录',
+                icon: 'none',
+                duration: 2000
+            });
+            reject(new Error('未登录，请先登录'));
+            return;
+        }
+
+        try {
+            // 逐个上传所有图片到 /files/upload 接口
+            const uploadedUrls: string[] = [];
+
+            for (let i = 0; i < tempFilePaths.length; i++) {
+                const filePath = tempFilePaths[i];
+                console.log(`上传第${i + 1}/${tempFilePaths.length}张图片到 /files/upload:`, filePath);
+
+                // 检查文件是否存在
+                const exists = await checkFileExists(filePath);
+                if (!exists) {
+                    reject(new Error(`第${i + 1}张图片文件不存在或已被清理`));
+                    return;
+                }
+
+                try {
+                    // 使用uni.uploadFile上传到 /files/upload 接口
+                    const result = await new Promise<UploadResponse>((uploadResolve, uploadReject) => {
+                        uni.uploadFile({
+                            url: `${config.baseURL}/files/upload`,
+                            fileType: "image",
+                            filePath: filePath,
+                            name: 'files', // 根据API文档，字段名应该是 'files'
+                            header: {
+                                'Authorization': `Bearer ${token}`
+                            },
+                            timeout: 30000,
+                            success: (response) => {
+                                console.log(`第${i + 1}张图片上传响应:`, response);
+
+                                if (response.statusCode === 200) {
+                                    try {
+                                        const result = JSON.parse(response.data);
+                                        // 如果返回的是 FileUploadResponseVO 格式 {urls: [...]}
+                                        if (result.urls && Array.isArray(result.urls)) {
+                                            uploadResolve({ url: result.urls[0] });
+                                        }
+                                        // 如果返回的是单个URL格式 {url: "..."}
+                                        else if (result.url) {
+                                            uploadResolve({ url: result.url });
+                                        } else {
+                                            uploadReject(new Error('服务器响应格式错误'));
+                                        }
+                                    } catch (parseError) {
+                                        uploadReject(new Error('服务器响应格式错误'));
+                                    }
+                                } else {
+                                    uploadReject(new Error(`上传失败，状态码: ${response.statusCode}`));
+                                }
+                            },
+                            fail: (error) => {
+                                uploadReject(new Error(`上传失败: ${error.errMsg || '未知错误'}`));
+                            }
+                        });
+                    });
+
+                    uploadedUrls.push(result.url);
+                    console.log(`第${i + 1}张图片上传成功:`, result.url);
+
+                } catch (error) {
+                    console.error(`第${i + 1}张图片上传失败:`, error);
+                    reject(new Error(`第${i + 1}张图片上传失败: ${error}`));
+                    return;
+                }
+            }
+
+            console.log('所有图片上传完成:', uploadedUrls);
+            resolve({ urls: uploadedUrls });
+
+        } catch (error) {
+            console.error('批量上传图片失败:', error);
+            reject(error);
+        }
+    });
+};
+
 // 确保 checkFileExists 被正确导出，防止 tree-shaking 优化
-export { checkFileExists, getChosenImagePaths, uploadImage };
+export { checkFileExists, getChosenImagePaths, uploadImage, uploadMultipleImages };
 

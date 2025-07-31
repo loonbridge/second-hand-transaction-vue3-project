@@ -134,19 +134,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { getChosenImagePaths, uploadImage } from '@/api/filesApi';
-import { createProduct, getCategories } from '@/api/productsApi';
-import type { CreateProductPayload, Category } from '@/api/types/productTypes';
+import { getChosenImagePaths } from '@/api/filesApi';
+import { createProductWithUrls, getCategories } from '@/api/productsApi';
+import type { Category, CreateProductPayload } from '@/api/types/productTypes';
+import { computed, onMounted, ref } from 'vue';
+import config from '@/config';
 
 // 响应式数据
 const imageList = ref<string[]>([]);
-const isUploading = ref<boolean>(false);
 const isPublishing = ref<boolean>(false);
 const categories = ref<Category[]>([]);
 const isLoadingCategories = ref<boolean>(false);
-const uploadProgress = ref<number>(0);
-const uploadingImageIndex = ref<number>(0);
 
 // 表单数据
 const formData = ref({
@@ -230,13 +228,13 @@ const showHelp = () => {
   });
 };
 
-// 选择图片
+// 选择图片（只预览，不上传）
 const chooseImage = async () => {
   try {
     const maxCount = 9 - imageList.value.length;
     if (maxCount <= 0) {
       uni.showToast({
-        title: '最多只能上传9张图片',
+        title: '最多只能选择9张图片',
         icon: 'none'
       });
       return;
@@ -244,56 +242,20 @@ const chooseImage = async () => {
 
     const imagePaths = await getChosenImagePaths(maxCount);
     if (imagePaths.length > 0) {
-      isUploading.value = true;
+      // 直接添加本地文件路径到列表，用于预览
+      imageList.value.push(...imagePaths);
 
-      // 逐个上传图片到服务器
-      for (let i = 0; i < imagePaths.length; i++) {
-        try {
-          // 先显示本地预览
-          imageList.value.push(imagePaths[i]);
+      uni.showToast({
+        title: `已选择${imagePaths.length}张图片`,
+        icon: 'success',
+        duration: 1500
+      });
 
-          // 显示上传进度
-          uni.showToast({
-            title: `正在上传第${i + 1}张图片...`,
-            icon: 'loading',
-            duration: 1000
-          });
-
-          // 立即上传到服务器
-          const uploadResult = await uploadImage(imagePaths[i]);
-
-          // 替换为服务器URL
-          const index = imageList.value.indexOf(imagePaths[i]);
-          if (index !== -1) {
-            imageList.value[index] = uploadResult.url;
-          }
-        } catch (error) {
-          console.error('上传图片失败:', error);
-          // 移除上传失败的图片
-          const index = imageList.value.indexOf(imagePaths[i]);
-          if (index !== -1) {
-            imageList.value.splice(index, 1);
-          }
-
-          uni.showToast({
-            title: `第${i + 1}张图片上传失败`,
-            icon: 'error',
-            duration: 2000
-          });
-        }
-      }
-
-      if (imageList.value.length > 0) {
-        uni.showToast({
-          title: '图片上传完成',
-          icon: 'success'
-        });
-      }
+      console.log('已选择图片:', imagePaths);
     }
   } catch (error) {
     console.error('选择图片失败:', error);
     // 只有在非取消操作时才显示错误提示
-    // 使用类型保护处理uni api错误对象
     const uniError = error as { errMsg?: string };
     if (uniError && uniError.errMsg && !uniError.errMsg.includes('cancel')) {
       uni.showToast({
@@ -301,8 +263,6 @@ const chooseImage = async () => {
         icon: 'error'
       });
     }
-  } finally {
-    isUploading.value = false;
   }
 };
 
@@ -512,114 +472,112 @@ const publishProduct = async () => {
   isPublishing.value = true;
 
   try {
-    // 先上传所有图片
-    const uploadedImageUrls: string[] = [];
-    const totalImages = imageList.value.length;
-    
-    console.log(`开始处理${totalImages}张图片`);
-
-    for (let i = 0; i < imageList.value.length; i++) {
-      const imagePath = imageList.value[i];
-      uploadingImageIndex.value = i + 1;
-      uploadProgress.value = Math.round(((i + 1) / totalImages) * 100);
-
-      try {
-        // 检查是否已经是服务器URL（已上传过的图片）
-        if (imagePath.startsWith('http')) {
-          console.log(`第${i + 1}张图片已是服务器URL，添加到列表: ${imagePath}`);
-          // 直接添加URL而不验证可访问性，因为后端可能有延迟或缓存问题
-          uploadedImageUrls.push(imagePath);
-          continue;
-        }
-
-        // 上传新图片
-        console.log(`开始上传第${i + 1}张图片: ${imagePath}`);
-        
-        try {
-        const uploadResult = await uploadImage(imagePath);
-          console.log(`第${i + 1}张图片上传成功: ${uploadResult.url}`);
-        uploadedImageUrls.push(uploadResult.url);
-
-        // 显示上传进度
-        uni.showToast({
-          title: `上传图片 ${i + 1}/${totalImages}`,
-          icon: 'loading',
-          duration: 500
-        });
-        } catch (uploadErr) {
-          console.error(`第${i + 1}张图片上传失败:`, uploadErr);
-          // 提示上传失败但继续发布流程
-          uni.showToast({
-            title: `第${i + 1}张图片上传失败，请稍后重试`,
-            icon: 'none',
-            duration: 2000
-          });
-          // 不中断流程，继续处理下一张图片
-        }
-      } catch (error) {
-        console.error(`处理第${i + 1}张图片时出错:`, error);
-        // 不中断，继续处理下一张图片
-      }
+    // 检查是否有图片
+    if (imageList.value.length === 0) {
+      throw new Error('请选择要上传的图片');
     }
 
-    // 如果没有成功上传的图片，提示错误
-    if (uploadedImageUrls.length === 0) {
-      throw new Error('没有成功上传的图片，请重试');
-    }
-    
-    // 检查所有图片URL格式
-    const validImageUrls = uploadedImageUrls.filter(url => {
-      // 检查URL是否有效
-      const isValidUrl = url && url.startsWith('http');
-      if (!isValidUrl) {
-        console.warn('无效的图片URL:', url);
-      }
-      return isValidUrl;
+    // 过滤出有效的文件路径
+    // 小程序的临时文件路径格式：http://tmp/... 或其他本地路径
+    const localImageFiles = imageList.value.filter(path => {
+      // 保留临时文件路径和本地文件路径，排除已上传到服务器的URL
+      return path.startsWith('http://tmp/') ||
+             path.startsWith('wxfile://') ||
+             (!path.startsWith('http://') && !path.startsWith('https://'));
     });
-    
-    // 如果有无效URL被过滤掉
-    if (validImageUrls.length < uploadedImageUrls.length) {
-      console.warn(`有${uploadedImageUrls.length - validImageUrls.length}张图片URL无效，已过滤`);
-      }
-    
-    // 如果过滤后没有有效图片，提示错误
-    if (validImageUrls.length === 0) {
-      throw new Error('没有有效的图片URL，请重新上传图片');
-    }
-    
-    // 确保图片URL符合后端期望格式 
-    // 后端可能期望一个特定的URL格式，这里我们确保URL是合法的绝对URL
-    const normalizedImageUrls = validImageUrls.map(url => {
-      try {
-        // 尝试创建URL对象以验证格式
-        const urlObj = new URL(url);
-        return urlObj.toString(); // 返回规范化的URL
-      } catch (e) {
-        console.warn('无法解析URL:', url, e);
-        // 如果URL无效但仍然以http开头，保留原样
-        return url.startsWith('http') ? url : '';
-      }
-    }).filter(Boolean); // 移除空字符串
 
-    // 构建符合API接口的商品数据
+    if (localImageFiles.length === 0) {
+      throw new Error('没有有效的本地图片文件');
+    }
+
+    console.log(`准备上传${localImageFiles.length}张图片文件`);
+    console.log('所有图片路径:', imageList.value);
+    console.log('过滤后的本地文件:', localImageFiles);
+
+    // 使用新的多文件上传API
+    uni.showToast({
+      title: `正在上传 0/${localImageFiles.length} 张图片...`,
+      icon: 'loading',
+      duration: 0 // 持续显示
+    });
+
+    // 创建一个带进度显示的上传函数
+    const uploadWithProgress = async (filePaths: string[]) => {
+      const uploadedUrls: string[] = [];
+
+      for (let i = 0; i < filePaths.length; i++) {
+        // 更新进度提示
+        uni.showToast({
+          title: `正在上传 ${i + 1}/${filePaths.length} 张图片...`,
+          icon: 'loading',
+          duration: 1000
+        });
+
+        try {
+          // 调用单个文件上传
+          const result = await new Promise<{url: string}>((resolve, reject) => {
+            const token = uni.getStorageSync('token');
+            uni.uploadFile({
+              url: `${config.baseURL}/files/upload`,
+              fileType: "image",
+              filePath: filePaths[i],
+              name: 'files',
+              header: {
+                'Authorization': `Bearer ${token}`
+              },
+              success: (response) => {
+                if (response.statusCode === 200) {
+                  try {
+                    const data = JSON.parse(response.data);
+                    if (data.urls && Array.isArray(data.urls)) {
+                      resolve({ url: data.urls[0] });
+                    } else if (data.url) {
+                      resolve({ url: data.url });
+                    } else {
+                      reject(new Error('服务器响应格式错误'));
+                    }
+                  } catch (e) {
+                    reject(new Error('解析响应失败'));
+                  }
+                } else {
+                  reject(new Error(`上传失败: ${response.statusCode}`));
+                }
+              },
+              fail: (error) => {
+                reject(new Error(`上传失败: ${error.errMsg}`));
+              }
+            });
+          });
+
+          uploadedUrls.push(result.url);
+          console.log(`第${i + 1}张图片上传成功:`, result.url);
+
+        } catch (error) {
+          console.error(`第${i + 1}张图片上传失败:`, error);
+          throw new Error(`第${i + 1}张图片上传失败，请重试`);
+        }
+      }
+
+      return { urls: uploadedUrls };
+    };
+
+    const uploadResult = await uploadWithProgress(localImageFiles);
+    console.log('所有图片上传完成:', uploadResult.urls);
+
+    // 构建商品数据，包含所有图片URL
     const productData: CreateProductPayload = {
       title: formData.value.productName,
       description: formData.value.productDescription,
       price: parseFloat(formData.value.price),
       stock: parseInt(formData.value.quantity),
-      categoryId: String(formData.value.categoryId || 8), // 确保categoryId是字符串
-      imageUrls: normalizedImageUrls // 使用规范化后的URL
+      categoryId: String(formData.value.categoryId || 8),
+      imageUrls: uploadResult.urls // 使用所有上传的图片URL
     };
 
     console.log('发布商品数据:', productData);
 
-    // 添加数据格式检查
-    if (productData.imageUrls.length === 0) {
-      throw new Error('图片URL格式无效，请重新选择图片');
-    }
-
-    // 调用发布商品API
-    const result = await createProduct(productData);
+    // 使用JSON API创建商品
+    const result = await createProductWithUrls(productData);
     console.log('发布成功:', result);
 
     uni.showToast({
@@ -684,8 +642,6 @@ const publishProduct = async () => {
     });
   } finally {
     isPublishing.value = false;
-    uploadProgress.value = 0;
-    uploadingImageIndex.value = 0;
   }
 };
 
@@ -700,8 +656,6 @@ const resetForm = () => {
     categoryId: 8 // 默认分类ID为8（其他）
   };
   imageList.value = [];
-  uploadProgress.value = 0;
-  uploadingImageIndex.value = 0;
 };
 
 // 保存草稿

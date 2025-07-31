@@ -42,15 +42,16 @@ const getProducts = (params:GetProductsParams) => {
 
 /**
  * 接口2: 发布新商品（POST /products）
+ * 使用 multipart/form-data 格式发布新商品
  * @param data - 创建新商品的请求体数据
+ * @param imageFiles - 商品图片文件路径数组
  * @returns 返回一个 Promise，其解析值为创建成功后的商品详情
  */
-
-
-const createProduct = (data: CreateProductPayload) => {
+const createProduct = (data: CreateProductPayload, imageFiles: string[]) => {
     return new Promise<ProductDetail>((resolve, reject) => {
         console.log('开始发布商品，请求数据:', JSON.stringify(data));
-        
+        console.log('图片文件:', imageFiles);
+
         // 获取存储的token
         const token = uni.getStorageSync('token');
         if (!token) {
@@ -62,48 +63,55 @@ const createProduct = (data: CreateProductPayload) => {
             reject(new Error('未登录，请先登录'));
             return;
         }
-        
-        // 临时适配：对URL进行特殊处理，解决服务器时间问题
-        const adaptedData = { ...data };
-        
-        // 检查并修正imageUrls，适配2025年时间问题
-        if (adaptedData.imageUrls && adaptedData.imageUrls.length > 0) {
-            console.log('尝试适配图片URL...');
-            // 如果当前服务器返回2025年的URL，我们临时允许它们通过，但要记录日志
-            adaptedData.imageUrls = adaptedData.imageUrls.filter(url => {
-                if (!url) return false;
-                
-                // 记录并允许通过所有URL，即使有2025年路径
-                const futureDateMatch = url.match(/\/(\d{4})\/(\d{2})\/(\d{2})\//);
-                if (futureDateMatch) {
-                    const year = parseInt(futureDateMatch[1]);
-                    if (year > new Date().getFullYear()) {
-                        console.warn(`允许包含未来日期(${year})的URL通过:`, url);
-                    }
-                }
-                return true;
-            });
-            
-            // 如果过滤后没有URL，添加提示
-            if (adaptedData.imageUrls.length === 0) {
-                console.error('所有图片URL都无效，请重新上传');
-                reject(new Error('所有图片URL都无效，请重新上传'));
-                return;
-            }
+
+        // 验证必要参数
+        if (!imageFiles || imageFiles.length === 0) {
+            reject(new Error('至少需要上传一张商品图片'));
+            return;
         }
-        
-        uni.request({
+
+        // 确保categoryId是字符串类型
+        const productData = {
+            ...data,
+            categoryId: String(data.categoryId)
+        };
+
+        // 由于uni.uploadFile的限制，我们使用主图片文件进行上传
+        // 如果有多个文件，我们使用第一个作为主图片
+        const mainImageFile = imageFiles[0];
+
+        // 构建formData，包含所有图片文件的信息
+        const formData: Record<string, any> = {
+            'data': JSON.stringify(productData)
+        };
+
+        // 如果有多个图片，我们在formData中添加额外信息
+        if (imageFiles.length > 1) {
+            formData['additionalFilesCount'] = String(imageFiles.length - 1);
+            console.log(`注意：当前只上传主图片，共有${imageFiles.length}张图片`);
+        }
+
+        uni.uploadFile({
             url: `${config.baseURL}/products`,
-            method: 'POST',
-            data: adaptedData,
+            filePath: mainImageFile,
+            name: 'files',
+            formData: formData,
             header: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // 添加认证token
+                'Authorization': `Bearer ${token}`
             },
             success: (response: any) => {
                 console.log('发布商品API响应:', response);
                 if (response.statusCode === 201 || response.statusCode === 200) {
-                    resolve(response.data as ProductDetail);
+                    try {
+                        // uploadFile返回的data是字符串，需要解析
+                        const result = typeof response.data === 'string'
+                            ? JSON.parse(response.data)
+                            : response.data;
+                        resolve(result as ProductDetail);
+                    } catch (parseError) {
+                        console.error('解析响应数据失败:', parseError);
+                        reject(new Error('服务器响应格式错误'));
+                    }
                 } else {
                     // 尝试解析详细错误信息
                     let errorDetails = '';
@@ -161,7 +169,7 @@ const createProduct = (data: CreateProductPayload) => {
                                 if (res.confirm) {
                                     // 重试逻辑
                                     console.log('用户选择重试，直接使用原始数据');
-                                    createProduct(data).then(resolve).catch(reject);
+                                    createProduct(productData, imageFiles).then(resolve).catch(reject);
                                 } else {
                                     reject(new Error(errorMsg));
                                 }
@@ -240,7 +248,57 @@ const getCategories = () => {
 }
 
 
+/**
+ * 临时函数：使用已上传的图片URL创建商品
+ * 这是为了兼容当前的图片上传流程
+ */
+const createProductWithUrls = (data: any) => {
+    return new Promise<ProductDetail>((resolve, reject) => {
+        console.log('开始发布商品（使用URL），请求数据:', JSON.stringify(data));
+
+        // 获取存储的token
+        const token = uni.getStorageSync('token');
+        if (!token) {
+            uni.showToast({
+                title: '请先登录',
+                icon: 'none',
+                duration: 2000
+            });
+            reject(new Error('未登录，请先登录'));
+            return;
+        }
+
+        // 验证必要参数
+        if (!data.imageUrls || data.imageUrls.length === 0) {
+            reject(new Error('至少需要一张商品图片'));
+            return;
+        }
+
+        uni.request({
+            url: `${config.baseURL}/products`,
+            method: 'POST',
+            data: data,
+            header: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            success: (response: any) => {
+                console.log('发布商品API响应:', response);
+                if (response.statusCode === 201 || response.statusCode === 200) {
+                    resolve(response.data as ProductDetail);
+                } else {
+                    reject(new Error(`发布失败: HTTP ${response.statusCode}`));
+                }
+            },
+            fail: (error) => {
+                console.error('发布商品请求失败:', error);
+                reject(new Error('网络请求失败: ' + error.errMsg));
+            }
+        });
+    });
+};
+
 export {
-    createProduct, getCategories, getProductById, getProducts
+    createProduct, createProductWithUrls, getCategories, getProductById, getProducts
 };
 
