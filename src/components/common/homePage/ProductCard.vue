@@ -4,10 +4,10 @@
     <view class="image-container">
       <!-- The product image, using a view with background-image for better control -->
       <!-- <view  class="product-image" :style="{ backgroundImage: 'url(' + product.mainImageUrl + ')' }"></view> -->
-      <image  class="product-image" 
+      <image  class="product-image"
       :src="product.mainImageUrl"
       @click="handleProductImageClick()"
-      mode="widthFix"
+      mode="aspectFill"
       ></image>
       <!-- Price overlay with a gradient background -->
       <view class="price-overlay">
@@ -46,26 +46,26 @@ const handleProductImageClick = () => {
 .product-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; // 8px gap between image and text blocks
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%; // 填充父容器
+  height: 100%; // 确保高度一致
 }
 
 .image-container {
   position: relative;
   overflow: hidden;
-  border-radius: 0.5rem; // 8px rounded corners
+  border-radius: 8px;
   width: 100%;
+  height: 160px; // 使用更小的固定高度
+  background-color: #f3f4f6;
 }
 
 .product-image {
-    display: block;
-    height : auto;
+  display: block;
   width: 100%;
-  aspect-ratio: 1 / 1; // Creates a square aspect ratio
-//   background-size: cover;
-//   background-position: center;
-
-    object-fit: cover;
-    object-position: center;
+  height: 160px; // 明确指定高度，确保一致性
+  border-radius: 8px;
 }
 
 .price-overlay {
@@ -84,7 +84,7 @@ const handleProductImageClick = () => {
 }
 
 .info-container {
-  // Container for text, no extra styles needed
+  padding: 0.25rem 0; // 添加一些内边距
 }
 
 .product-title {

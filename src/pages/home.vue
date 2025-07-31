@@ -45,10 +45,10 @@
       </view>
 
       <!-- 商品列表 -->
-      <ProductGrid v-else :products="recommendProducts" />
+      <ProductGrid v-else-if="recommendProducts.length > 0" :products="recommendProducts" />
 
       <!-- 空状态 -->
-      <view v-if="!isLoading && recommendProducts.length === 0" class="empty-container">
+      <view v-else class="empty-container">
         <text class="empty-text">暂无商品数据</text>
         <button class="retry-btn" @click="loadProducts()">重新加载</button>
       </view>
