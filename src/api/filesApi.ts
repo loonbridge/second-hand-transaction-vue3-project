@@ -87,7 +87,7 @@ const uploadImage = (tempFilePath: string): Promise<UploadResponse> => {
             }
 
             // 获取存储的token
-            const token = uni.getStorageSync('token');
+            const token = getToken();
             if (!token) {
                 uni.showToast({
                     title: '请先登录',
