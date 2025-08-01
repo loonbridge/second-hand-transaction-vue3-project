@@ -127,5 +127,85 @@ const removeFavorite = (productId: string) => {
 }
 
 
-export { addFavorite, getMyProfile, removeFavorite };
+/**
+ * @description 关注用户
+ * @summary 对应后端 API: POST /users/{id}/follow
+ * @param {string} userId 要关注的用户ID
+ * @returns {Promise<void>} 操作成功时，返回一个无内容的 Promise
+ */
+const followUser = (userId: string) => {
+    return new Promise<void>((resolve, reject) => {
+        const token = getToken();
+
+        if (!token) {
+            reject(new Error('未登录，请先登录'));
+            return;
+        }
+
+        uni.request({
+            url: `${config.baseURL}/users/${userId}/follow`,
+            method: 'POST',
+            header: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            success: (response) => {
+                if (response.statusCode === 201 || response.statusCode === 204 || response.statusCode === 200) {
+                    resolve();
+                } else if (response.statusCode === 401) {
+                    reject(new Error('认证失败，请重新登录'));
+                } else if (response.statusCode === 404) {
+                    reject(new Error('用户不存在'));
+                } else {
+                    reject(new Error(`关注失败: HTTP ${response.statusCode}`));
+                }
+            },
+            fail: (error) => {
+                reject(new Error(`网络请求失败: ${error.errMsg || '未知错误'}`));
+            }
+        });
+    });
+}
+
+/**
+ * @description 取消关注用户
+ * @summary 对应后端 API: DELETE /users/{id}/follow
+ * @param {string} userId 要取消关注的用户ID
+ * @returns {Promise<void>} 操作成功时，返回一个无内容的 Promise
+ */
+const unfollowUser = (userId: string) => {
+    return new Promise<void>((resolve, reject) => {
+        const token = getToken();
+
+        if (!token) {
+            reject(new Error('未登录，请先登录'));
+            return;
+        }
+
+        uni.request({
+            url: `${config.baseURL}/users/${userId}/follow`,
+            method: 'DELETE',
+            header: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            success: (response) => {
+                if (response.statusCode === 204 || response.statusCode === 200) {
+                    resolve();
+                } else if (response.statusCode === 401) {
+                    reject(new Error('认证失败，请重新登录'));
+                } else if (response.statusCode === 404) {
+                    reject(new Error('用户不存在'));
+                } else {
+                    reject(new Error(`取消关注失败: HTTP ${response.statusCode}`));
+                }
+            },
+            fail: (error) => {
+                reject(new Error(`网络请求失败: ${error.errMsg || '未知错误'}`));
+            }
+        });
+    });
+}
+
+export { addFavorite, getMyProfile, removeFavorite, followUser, unfollowUser };
 

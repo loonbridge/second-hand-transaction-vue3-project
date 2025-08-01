@@ -1,6 +1,7 @@
 
 import config from "@/config";
-import type { Category, CreateProductPayload, GetProductResponse, GetProductsParams, ProductDetail } from "./types/productTypes";
+import { getToken } from "@/utils/auth";
+import type { Category, CreateProductPayload, GetProductResponse, GetProductsParams, ProductDetail, UpdateProductRequest } from "./types/productTypes";
 
 
 /**
@@ -12,20 +13,31 @@ import type { Category, CreateProductPayload, GetProductResponse, GetProductsPar
 
 const getProducts = (params:GetProductsParams) => {
     return new Promise<GetProductResponse>((resolve, reject) => {
+        const token = getToken();
+
         console.log('调用商品列表API:', `${config.baseURL}/products`, params);
+
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json'
+        };
+
+        // 如果有token，添加Authorization头
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
 
         uni.request({
             url: `${config.baseURL}/products`,
             method: 'GET',
             data: params,
-            header: {
-                'Content-Type': 'application/json'
-            },
+            header: headers,
             success: (response) => {
                 console.log('商品列表API响应:', response);
 
                 if (response.statusCode === 200) {
                     resolve(response.data as GetProductResponse);
+                } else if (response.statusCode === 401) {
+                    reject(new Error('认证失败，请重新登录'));
                 } else {
                     reject(new Error(`获取商品列表失败: HTTP ${response.statusCode}`));
                 }
@@ -196,18 +208,41 @@ const createProduct = (data: CreateProductPayload, imageFiles: string[]) => {
  * @param id - 商品的 ID
  * @returns 返回一个 Promise，其解析值为单个商品的详细信息
  */
-
-
 const getProductById = (id: string) => {
     return new Promise<ProductDetail>((resolve, reject) => {
+        const token = getToken();
+
+        console.log('调用获取商品详情API:', `${config.baseURL}/products/${id}`);
+
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json'
+        };
+
+        // 如果有token，添加Authorization头
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
         uni.request({
             url: `${config.baseURL}/products/${id}`,
             method: 'GET',
+            header: headers,
             success: (response) => {
-                resolve(response.data as ProductDetail);
+                console.log('获取商品详情API响应:', response);
+
+                if (response.statusCode === 200) {
+                    resolve(response.data as ProductDetail);
+                } else if (response.statusCode === 401) {
+                    reject(new Error('认证失败，请重新登录'));
+                } else if (response.statusCode === 404) {
+                    reject(new Error('商品未找到'));
+                } else {
+                    reject(new Error(`获取商品详情失败: HTTP ${response.statusCode}`));
+                }
             },
             fail: (error) => {
-                reject(error);
+                console.error('获取商品详情API请求失败:', error);
+                reject(new Error(`网络请求失败: ${error.errMsg || '未知错误'}`));
             }
         });
     });
@@ -222,19 +257,30 @@ const getProductById = (id: string) => {
 
 const getCategories = () => {
     return new Promise<Category[]>((resolve, reject) => {
+        const token = getToken();
+
         console.log('调用分类列表API:', `${config.baseURL}/categories`);
+
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json'
+        };
+
+        // 如果有token，添加Authorization头
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
 
         uni.request({
             url: `${config.baseURL}/categories`,
             method: 'GET',
-            header: {
-                'Content-Type': 'application/json'
-            },
+            header: headers,
             success: (response: any) => {
                 console.log('分类列表API响应:', response);
 
                 if (response.statusCode === 200) {
                     resolve(response.data as Category[]);
+                } else if (response.statusCode === 401) {
+                    reject(new Error('认证失败，请重新登录'));
                 } else {
                     reject(new Error(`获取分类失败: HTTP ${response.statusCode}: ${response.data?.message || '未知错误'}`));
                 }
@@ -298,7 +344,117 @@ const createProductWithUrls = (data: any) => {
     });
 };
 
+/**
+ * 更新指定商品信息
+ * @description 对应后端 API: PUT /products/{id}
+ * @param id 商品ID
+ * @param data 更新的商品数据
+ * @returns 返回更新后的商品详情
+ */
+const updateProduct = (id: string, data: UpdateProductRequest): Promise<ProductDetail> => {
+    return new Promise((resolve, reject) => {
+        const token = getToken();
+
+        if (!token) {
+            uni.showToast({
+                title: '请先登录',
+                icon: 'none',
+                duration: 2000
+            });
+            reject(new Error('未登录，请先登录'));
+            return;
+        }
+
+        console.log('调用更新商品API:', `${config.baseURL}/products/${id}`, data);
+
+        uni.request({
+            url: `${config.baseURL}/products/${id}`,
+            method: 'PUT',
+            data: data,
+            header: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            success: (response) => {
+                console.log('更新商品API响应:', response);
+
+                if (response.statusCode === 200) {
+                    resolve(response.data as ProductDetail);
+                } else if (response.statusCode === 400) {
+                    reject(new Error('请求参数错误'));
+                } else if (response.statusCode === 403) {
+                    reject(new Error('无权限操作（非商品所有者）'));
+                } else if (response.statusCode === 404) {
+                    reject(new Error('商品未找到'));
+                } else {
+                    reject(new Error(`更新商品失败: HTTP ${response.statusCode}`));
+                }
+            },
+            fail: (error) => {
+                console.error('更新商品API请求失败:', error);
+                reject(new Error(`网络请求失败: ${error.errMsg || '未知错误'}`));
+            }
+        });
+    });
+};
+
+/**
+ * 删除指定商品
+ * @description 对应后端 API: DELETE /products/{id}
+ * @param id 商品ID
+ * @returns 返回Promise，成功时无返回值
+ */
+const deleteProduct = (id: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+        const token = getToken();
+
+        if (!token) {
+            uni.showToast({
+                title: '请先登录',
+                icon: 'none',
+                duration: 2000
+            });
+            reject(new Error('未登录，请先登录'));
+            return;
+        }
+
+        console.log('调用删除商品API:', `${config.baseURL}/products/${id}`);
+
+        uni.request({
+            url: `${config.baseURL}/products/${id}`,
+            method: 'DELETE',
+            header: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            success: (response) => {
+                console.log('删除商品API响应:', response);
+
+                if (response.statusCode === 204) {
+                    resolve();
+                } else if (response.statusCode === 403) {
+                    reject(new Error('无权限操作（非商品所有者）'));
+                } else if (response.statusCode === 404) {
+                    reject(new Error('商品未找到'));
+                } else {
+                    reject(new Error(`删除商品失败: HTTP ${response.statusCode}`));
+                }
+            },
+            fail: (error) => {
+                console.error('删除商品API请求失败:', error);
+                reject(new Error(`网络请求失败: ${error.errMsg || '未知错误'}`));
+            }
+        });
+    });
+};
+
 export {
-    createProduct, createProductWithUrls, getCategories, getProductById, getProducts
+    createProduct,
+    createProductWithUrls,
+    getCategories,
+    getProductById,
+    getProducts,
+    updateProduct,
+    deleteProduct
 };
 

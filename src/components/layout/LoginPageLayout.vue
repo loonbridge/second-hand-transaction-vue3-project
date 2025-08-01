@@ -3,7 +3,7 @@
   <view class="login-layout">
     <!-- 状态栏占位 -->
     <view class="status-bar"></view>
-    
+
     <!-- 头部区域 -->
     <header class="login-header-container">
       <slot name="header"></slot>
@@ -40,12 +40,12 @@
 .status-bar {
   height: var(--status-bar-height);
   background-color: var(--background-color);
-  
+
   // 条件编译：仅在小程序中显示状态栏占位
   /* #ifdef MP-WEIXIN */
   height: var(--status-bar-height);
   /* #endif */
-  
+
   /* #ifdef H5 */
   height: 0;
   /* #endif */

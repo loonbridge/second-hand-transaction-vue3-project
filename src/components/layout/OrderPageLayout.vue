@@ -4,13 +4,11 @@
     <header class="sticky-header">
       <view class="header-content">
         <view class="nav-bar">
-          <button class="back-button" @click="handleBackClick">
-            <uni-icons type="back" size="24" color="#1e293b"></uni-icons>
-          </button>
+          <BackButton variant="default" @click="handleBackClick" />
           <text class="page-title">订单管理</text>
           <view class="placeholder"></view>
         </view>
-        
+
         <!-- 标签页导航 -->
         <nav class="tab-navigation">
           <slot name="tabs"></slot>
@@ -26,6 +24,8 @@
 </template>
 
 <script setup lang="ts">
+import BackButton from '@/components/common/BackButton.vue';
+
 // 定义事件
 const emit = defineEmits<{
   backClick: []
@@ -74,21 +74,7 @@ const handleBackClick = () => {
   position: relative;
 }
 
-.back-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  background-color: transparent;
-  border: none;
-  transition: background-color 0.2s;
-  
-  &:hover {
-    background-color: #f1f5f9;
-  }
-}
+
 
 .page-title {
   position: absolute;

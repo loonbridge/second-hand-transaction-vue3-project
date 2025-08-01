@@ -3,7 +3,11 @@
     <!-- 顶部导航栏 -->
     <view class="header">
       <view class="header-content">
+        <button class="back-button" @click="handleBackClick">
+          <uni-icons type="back" size="24" color="#1e293b"></uni-icons>
+        </button>
         <text class="header-title">支付测试</text>
+        <view class="header-spacer"></view>
       </view>
     </view>
 
@@ -235,6 +239,11 @@ const testGetOrders = async () => {
   }
 };
 
+// 返回按钮点击
+const handleBackClick = () => {
+  uni.navigateBack();
+};
+
 // 调用微信支付（示例）
 const callWeChatPay = async (payParams: any) => {
   try {
@@ -280,14 +289,42 @@ const callWeChatPay = async (payParams: any) => {
 .header-content {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   padding: 16px;
+  position: relative;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 .header-title {
-  font-size: 20px;
-  font-weight: 700;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+  font-weight: 600;
   color: #1f2937;
+}
+
+.header-spacer {
+  width: 40px;
 }
 
 /* 主要内容区域 */
