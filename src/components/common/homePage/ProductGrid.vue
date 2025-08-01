@@ -3,7 +3,9 @@
     <text class="section-title">为您推荐</text>
     <!-- A simple grid layout for the products -->
     <view class="product-grid">
-      <ProductCard v-for="item in products" :key="item.productId" :product="item" />
+      <view class="product-item" v-for="item in products" :key="item.productId">
+        <ProductCard :product="item" />
+      </view>
     </view>
   </view>
 </template>
@@ -12,7 +14,6 @@
 import type { ProductSummary } from '@/api/types/productTypes';
 import ProductCard from './ProductCard.vue';
 
-// No need to split into columns manually with CSS grid
 defineProps<{
   products: ProductSummary[];
 }>();
@@ -24,7 +25,7 @@ defineProps<{
 }
 
 .recommend-section {
-  // No specific styles needed for the container itself
+  padding: 0 1rem; // 添加水平内边距
 }
 
 .section-title {
@@ -37,9 +38,16 @@ defineProps<{
 }
 
 .product-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); // Two-column grid
-  gap: 1rem; // 16px gap
-  padding-bottom: 1rem; // Add some space at the bottom
+  display: flex;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  width: 100%;
+  gap: 8px; // 商品之间的间距
+}
+
+.product-item {
+  width: calc(50% - 4px); // 每行两列，减去gap的一半
+  box-sizing: border-box;
+  margin-bottom: 8px;
 }
 </style>

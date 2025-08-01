@@ -8,19 +8,37 @@
  */
 
 import config from "@/config";
+import { getToken } from "@/utils/auth";
 import type { GetNotificationsParams, Notification } from "./types/notificationTypes";
 
 const getNotifications = (param:GetNotificationsParams):Promise<Notification[]> => {
     return new Promise((resolve, reject) => {
+        const token = getToken();
+
+        if (!token) {
+            reject(new Error('未登录，请先登录'));
+            return;
+        }
+
         uni.request({
             url: `${config.baseURL}/notifications`,
             method: 'GET',
             data: param,
+            header: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             success: (response) => {
-                resolve(response.data as Notification[]);
+                if (response.statusCode === 200) {
+                    resolve(response.data as Notification[]);
+                } else if (response.statusCode === 401) {
+                    reject(new Error('认证失败，请重新登录'));
+                } else {
+                    reject(new Error(`获取消息失败: HTTP ${response.statusCode}`));
+                }
             },
             fail: (error) => {
-                reject(error);
+                reject(new Error(`网络请求失败: ${error.errMsg || '未知错误'}`));
             }
         });
     });

@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue';
 
 const tabs = ['所有', '系统消息', '交易消息']
 const currentTab = ref('所有')
@@ -101,6 +101,10 @@ const navigateToProduct = (id: number) => {
   //   url: `/pages/product/product?id=${id}`
   // })
 }
+
+
+
+
 </script>
 
 <style scoped>

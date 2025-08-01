@@ -37,7 +37,7 @@ export interface CreateProductPayload {
     description: string;
     price: number;
     stock: number;
-    categoryId: number; // 修改为number类型，对应数据库的Long类型
+    categoryId: string | number; // 修改为联合类型，兼容字符串和数字
     imageUrls: string[];
 }
 
@@ -58,6 +58,7 @@ export interface Category{
 export interface GetProductsParams {
     query?: string; // 搜索关键词
     categoryId?: string; // 分类ID
+    sellerId?: string; // 卖家ID，传入 'me' 可查询当前登录用户的商品
     /** 页码，从1开始 (可选, 后端默认为1) */
     page?: number;
 

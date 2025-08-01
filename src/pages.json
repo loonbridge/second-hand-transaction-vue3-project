@@ -2,83 +2,85 @@
 	"easycom": {
 		"autoscan": true,
 		"custom": {
-			// uni-ui 规则如下配置
 			"^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
 		}
 	},
 	"pages": [
-		// 第一个页面会作为首页。
-		// {
-		// 	"path": "pages/index"
-		// },
-		{
-			"path": "pages/home"
-			
 
-		}
-		// 消息通知
-		,
 		{
-			"path": "pages/notifications"
+			"path": "pages/login"
 		},
-		// 个人中心
 		{
-			"path": "pages/product"
-
-		}
-		// 发布商品
-		,
-		{
-			"path": "pages/profile"
+			"path": "pages/home",
+			"style": {
+				"navigationStyle": "custom"
+			}
 		},
-		// 商品发布
 		{
-			"path": "pages/publish"
-		}
-		,
-		// 商品管理
-		
+			"path": "pages/notifications",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
 		{
-			"path": "pages/order_manage"
+			"path": "pages/product",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/profile",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/publish",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/order_manage",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/payment_test",
+			"style": {
+				"navigationBarTitleText": "支付测试",
+				"navigationStyle": "custom"
+			}
 		}
-
 	],
 	
 	"tabBar": {
-		
 		"color": "#666666",
 		"selectedColor": "#1296db",
 		"backgroundColor": "#FFFFFF",
 		"borderStyle": "black",
 		"list": [
-		
 			{
 				"text": "首页",
 				"pagePath": "pages/home"
-			}
-			,
+			},
 			{
 				"text": "发布",
 				"pagePath": "pages/publish"
-			}
-
-			,
+			},
+			{
+				"text": "支付测试",
+				"pagePath": "pages/payment_test"
+			},
 			{
 				"text": "消息",
 				"pagePath": "pages/notifications"
-			}
-			
-			,
+			},
 			{
 				"text": "个人中心",
 				"pagePath": "pages/profile"
 			}
-			
-			
 		]
-	
-
-
 	}
-
 }

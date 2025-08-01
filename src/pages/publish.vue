@@ -27,12 +27,12 @@
           <!-- 已上传图片显示（滑动查看） -->
           <view v-else class="uploaded-images">
             <swiper
-              class="image-swiper"
-              :indicator-dots="true"
-              :autoplay="false"
-              :circular="false"
-              indicator-color="rgba(255,255,255,0.5)"
-              indicator-active-color="#ffffff"
+                class="image-swiper"
+                :indicator-dots="true"
+                :autoplay="false"
+                :circular="false"
+                indicator-color="rgba(255,255,255,0.5)"
+                indicator-active-color="#ffffff"
             >
               <swiper-item v-for="(image, index) in imageList" :key="index" class="swiper-item">
                 <view class="image-container">
@@ -57,10 +57,10 @@
         <view class="form-item">
           <text class="form-label">商品名称</text>
           <input
-            class="form-input"
-            v-model="formData.productName"
-            placeholder="例如：九成新山地自行车"
-            maxlength="100"
+              class="form-input"
+              v-model="formData.productName"
+              placeholder="例如：九成新山地自行车"
+              maxlength="100"
           />
         </view>
 
@@ -68,10 +68,10 @@
         <view class="form-item">
           <text class="form-label">商品描述</text>
           <textarea
-            class="form-textarea"
-            v-model="formData.productDescription"
-            placeholder="详细描述一下你的宝贝吧..."
-            maxlength="1000"
+              class="form-textarea"
+              v-model="formData.productDescription"
+              placeholder="详细描述一下你的宝贝吧..."
+              maxlength="1000"
           ></textarea>
         </view>
 
@@ -93,10 +93,10 @@
             <view class="price-input-wrapper">
               <text class="price-symbol">¥</text>
               <input
-                class="form-input price-input"
-                v-model="formData.price"
-                placeholder="0.00"
-                type="text"
+                  class="form-input price-input"
+                  v-model="formData.price"
+                  placeholder="0.00"
+                  type="text"
               />
             </view>
           </view>
@@ -104,12 +104,12 @@
           <view class="form-item">
             <text class="form-label">数量</text>
             <input
-              class="form-input"
-              v-model="formData.quantity"
-              placeholder="1"
-              type="number"
-              min="1"
-              max="9999"
+                class="form-input"
+                v-model="formData.quantity"
+                placeholder="1"
+                type="number"
+                min="1"
+                max="9999"
             />
           </view>
         </view>
@@ -119,9 +119,9 @@
     <!-- 底部发布按钮 -->
     <view class="footer">
       <view
-        class="publish-btn"
-        @click="publishProduct"
-        :class="{
+          class="publish-btn"
+          @click="publishProduct"
+          :class="{
           'loading': isPublishing,
           'disabled': !isFormValid
         }"
@@ -134,19 +134,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { getChosenImagePaths, uploadImage } from '@/api/filesApi';
-import { createProduct, getCategories } from '@/api/productsApi';
-import type { CreateProductPayload, Category } from '@/api/types/productTypes';
+import { getChosenImagePaths } from '@/api/filesApi';
+import { createProductWithUrls, getCategories } from '@/api/productsApi';
+import type { Category, CreateProductPayload } from '@/api/types/productTypes';
+import { computed, onMounted, ref } from 'vue';
+import config from '@/config';
 
 // 响应式数据
 const imageList = ref<string[]>([]);
-const isUploading = ref<boolean>(false);
 const isPublishing = ref<boolean>(false);
 const categories = ref<Category[]>([]);
 const isLoadingCategories = ref<boolean>(false);
-const uploadProgress = ref<number>(0);
-const uploadingImageIndex = ref<number>(0);
 
 // 表单数据
 const formData = ref({
@@ -163,13 +161,13 @@ const formData = ref({
 // 计算属性：表单验证
 const isFormValid = computed(() => {
   return formData.value.productName.trim() !== '' &&
-         formData.value.productDescription.trim() !== '' &&
-         formData.value.price.trim() !== '' &&
-         parseFloat(formData.value.price) > 0 &&
-         parseInt(formData.value.quantity) > 0 &&
-         formData.value.category.trim() !== '' &&
-         formData.value.categoryId > 0 &&
-         imageList.value.length > 0;
+      formData.value.productDescription.trim() !== '' &&
+      formData.value.price.trim() !== '' &&
+      parseFloat(formData.value.price) > 0 &&
+      parseInt(formData.value.quantity) > 0 &&
+      formData.value.category.trim() !== '' &&
+      formData.value.categoryId > 0 &&
+      imageList.value.length > 0;
 });
 
 // 返回上一页
@@ -180,21 +178,45 @@ const goBack = () => {
       content: '您有未保存的内容，确定要离开吗？',
       success: (res) => {
         if (res.confirm) {
+          try {
+            const pages = getCurrentPages();
+            if (pages.length > 1) {
           uni.navigateBack();
+            } else {
+              // 如果当前页面是第一个页面，无法返回，则跳转到首页
+              uni.switchTab({ url: '/pages/home' });
+            }
+          } catch (e) {
+            console.error('导航错误:', e);
+            // 发生错误时默认跳转到首页
+            uni.switchTab({ url: '/pages/home' });
+          }
         }
       }
     });
   } else {
+    try {
+      const pages = getCurrentPages();
+      if (pages.length > 1) {
     uni.navigateBack();
+      } else {
+        // 如果当前页面是第一个页面，无法返回，则跳转到首页
+        uni.switchTab({ url: '/pages/home' });
+      }
+    } catch (e) {
+      console.error('导航错误:', e);
+      // 发生错误时默认跳转到首页
+      uni.switchTab({ url: '/pages/home' });
+    }
   }
 };
 
 // 检查是否有未保存的更改
 const hasUnsavedChanges = () => {
   return formData.value.productName.trim() !== '' ||
-         formData.value.productDescription.trim() !== '' ||
-         formData.value.price.trim() !== '' ||
-         imageList.value.length > 0;
+      formData.value.productDescription.trim() !== '' ||
+      formData.value.price.trim() !== '' ||
+      imageList.value.length > 0;
 };
 
 // 显示帮助
@@ -206,13 +228,13 @@ const showHelp = () => {
   });
 };
 
-// 选择图片
+// 选择图片（只预览，不上传）
 const chooseImage = async () => {
   try {
     const maxCount = 9 - imageList.value.length;
     if (maxCount <= 0) {
       uni.showToast({
-        title: '最多只能上传9张图片',
+        title: '最多只能选择9张图片',
         icon: 'none'
       });
       return;
@@ -220,63 +242,27 @@ const chooseImage = async () => {
 
     const imagePaths = await getChosenImagePaths(maxCount);
     if (imagePaths.length > 0) {
-      isUploading.value = true;
+      // 直接添加本地文件路径到列表，用于预览
+      imageList.value.push(...imagePaths);
 
-      // 逐个上传图片到服务器
-      for (let i = 0; i < imagePaths.length; i++) {
-        try {
-          // 先显示本地预览
-          imageList.value.push(imagePaths[i]);
+      uni.showToast({
+        title: `已选择${imagePaths.length}张图片`,
+        icon: 'success',
+        duration: 1500
+      });
 
-          // 显示上传进度
-          uni.showToast({
-            title: `正在上传第${i + 1}张图片...`,
-            icon: 'loading',
-            duration: 1000
-          });
-
-          // 立即上传到服务器
-          const uploadResult = await uploadImage(imagePaths[i]);
-
-          // 替换为服务器URL
-          const index = imageList.value.indexOf(imagePaths[i]);
-          if (index !== -1) {
-            imageList.value[index] = uploadResult.url;
-          }
-        } catch (error) {
-          console.error('上传图片失败:', error);
-          // 移除上传失败的图片
-          const index = imageList.value.indexOf(imagePaths[i]);
-          if (index !== -1) {
-            imageList.value.splice(index, 1);
-          }
-
-          uni.showToast({
-            title: `第${i + 1}张图片上传失败`,
-            icon: 'error',
-            duration: 2000
-          });
-        }
-      }
-
-      if (imageList.value.length > 0) {
-        uni.showToast({
-          title: '图片上传完成',
-          icon: 'success'
-        });
-      }
+      console.log('已选择图片:', imagePaths);
     }
   } catch (error) {
     console.error('选择图片失败:', error);
     // 只有在非取消操作时才显示错误提示
-    if (error && error.errMsg && !error.errMsg.includes('cancel')) {
+    const uniError = error as { errMsg?: string };
+    if (uniError && uniError.errMsg && !uniError.errMsg.includes('cancel')) {
       uni.showToast({
         title: '选择图片失败',
         icon: 'error'
       });
     }
-  } finally {
-    isUploading.value = false;
   }
 };
 
@@ -309,8 +295,10 @@ const loadCategories = async () => {
   } catch (error) {
     console.error('加载分类失败:', error);
 
+    // 使用类型断言处理错误对象
+    const err = error as { message?: string };
     // 检查是否是网络连接问题
-    if (error && error.message && error.message.includes('网络请求失败')) {
+    if (err && err.message && err.message.includes('网络请求失败')) {
       uni.showToast({
         title: '网络连接失败，请检查后端服务',
         icon: 'none',
@@ -358,6 +346,7 @@ const showCategoryPicker = async () => {
       formData.value.category = selectedCategory.name;
       // 存储选中的分类ID，用于提交时使用
       formData.value.categoryId = selectedCategory.categoryId;
+      console.log('选择分类:', selectedCategory.name, '分类ID:', selectedCategory.categoryId);
     }
   });
 };
@@ -466,56 +455,129 @@ const publishProduct = async () => {
     });
     return;
   }
+  
+  // 检查用户是否已登录
+  const token = uni.getStorageSync('token');
+  if (!token) {
+    uni.showToast({
+      title: '请先登录后再发布商品',
+      icon: 'none',
+      duration: 2000
+    });
+    // 可以在这里添加跳转到登录页的逻辑
+    // uni.navigateTo({ url: '/pages/login/login' });
+    return;
+  }
 
   isPublishing.value = true;
 
   try {
-    // 先上传所有图片
-    const uploadedImageUrls: string[] = [];
-    const totalImages = imageList.value.length;
-
-    for (let i = 0; i < imageList.value.length; i++) {
-      const imagePath = imageList.value[i];
-      uploadingImageIndex.value = i + 1;
-      uploadProgress.value = Math.round(((i + 1) / totalImages) * 100);
-
-      try {
-        // 检查是否已经是服务器URL（已上传过的图片）
-        if (imagePath.startsWith('http')) {
-          uploadedImageUrls.push(imagePath);
-          continue;
-        }
-
-        // 上传新图片
-        const uploadResult = await uploadImage(imagePath);
-        uploadedImageUrls.push(uploadResult.url);
-
-        // 显示上传进度
-        uni.showToast({
-          title: `上传图片 ${i + 1}/${totalImages}`,
-          icon: 'loading',
-          duration: 500
-        });
-      } catch (uploadError) {
-        console.error('图片上传失败:', uploadError);
-        throw new Error(`第${i + 1}张图片上传失败`);
-      }
+    // 检查是否有图片
+    if (imageList.value.length === 0) {
+      throw new Error('请选择要上传的图片');
     }
 
-    // 构建符合API接口的商品数据
+    // 过滤出有效的文件路径
+    // 小程序的临时文件路径格式：http://tmp/... 或其他本地路径
+    const localImageFiles = imageList.value.filter(path => {
+      // 保留临时文件路径和本地文件路径，排除已上传到服务器的URL
+      return path.startsWith('http://tmp/') ||
+             path.startsWith('wxfile://') ||
+             (!path.startsWith('http://') && !path.startsWith('https://'));
+    });
+
+    if (localImageFiles.length === 0) {
+      throw new Error('没有有效的本地图片文件');
+    }
+
+    console.log(`准备上传${localImageFiles.length}张图片文件`);
+    console.log('所有图片路径:', imageList.value);
+    console.log('过滤后的本地文件:', localImageFiles);
+
+    // 使用新的多文件上传API
+    uni.showToast({
+      title: `正在上传 0/${localImageFiles.length} 张图片...`,
+      icon: 'loading',
+      duration: 0 // 持续显示
+    });
+
+    // 创建一个带进度显示的上传函数
+    const uploadWithProgress = async (filePaths: string[]) => {
+      const uploadedUrls: string[] = [];
+
+      for (let i = 0; i < filePaths.length; i++) {
+        // 更新进度提示
+        uni.showToast({
+          title: `正在上传 ${i + 1}/${filePaths.length} 张图片...`,
+          icon: 'loading',
+          duration: 1000
+        });
+
+        try {
+          // 调用单个文件上传
+          const result = await new Promise<{url: string}>((resolve, reject) => {
+            const token = uni.getStorageSync('token');
+            uni.uploadFile({
+              url: `${config.baseURL}/files/upload`,
+              fileType: "image",
+              filePath: filePaths[i],
+              name: 'files',
+              header: {
+                'Authorization': `Bearer ${token}`
+              },
+              success: (response) => {
+                if (response.statusCode === 200) {
+                  try {
+                    const data = JSON.parse(response.data);
+                    if (data.urls && Array.isArray(data.urls)) {
+                      resolve({ url: data.urls[0] });
+                    } else if (data.url) {
+                      resolve({ url: data.url });
+                    } else {
+                      reject(new Error('服务器响应格式错误'));
+                    }
+                  } catch (e) {
+                    reject(new Error('解析响应失败'));
+                  }
+                } else {
+                  reject(new Error(`上传失败: ${response.statusCode}`));
+                }
+              },
+              fail: (error) => {
+                reject(new Error(`上传失败: ${error.errMsg}`));
+              }
+            });
+          });
+
+          uploadedUrls.push(result.url);
+          console.log(`第${i + 1}张图片上传成功:`, result.url);
+
+        } catch (error) {
+          console.error(`第${i + 1}张图片上传失败:`, error);
+          throw new Error(`第${i + 1}张图片上传失败，请重试`);
+        }
+      }
+
+      return { urls: uploadedUrls };
+    };
+
+    const uploadResult = await uploadWithProgress(localImageFiles);
+    console.log('所有图片上传完成:', uploadResult.urls);
+
+    // 构建商品数据，包含所有图片URL
     const productData: CreateProductPayload = {
       title: formData.value.productName,
       description: formData.value.productDescription,
       price: parseFloat(formData.value.price),
       stock: parseInt(formData.value.quantity),
-      categoryId: formData.value.categoryId || 8, // 使用选中的分类ID，默认为8（其他）
-      imageUrls: uploadedImageUrls
+      categoryId: String(formData.value.categoryId || 8),
+      imageUrls: uploadResult.urls // 使用所有上传的图片URL
     };
 
     console.log('发布商品数据:', productData);
 
-    // 调用真实的发布商品API
-    const result = await createProduct(productData);
+    // 使用JSON API创建商品
+    const result = await createProductWithUrls(productData);
     console.log('发布成功:', result);
 
     uni.showToast({
@@ -532,20 +594,44 @@ const publishProduct = async () => {
 
     // 发布成功后返回上一页
     setTimeout(() => {
+      try {
+        const pages = getCurrentPages();
+        if (pages.length > 1) {
       uni.navigateBack();
+        } else {
+          // 如果是从首页进入的发布页面，则跳转到首页
+          uni.switchTab({ url: '/pages/home' });
+        }
+      } catch (e) {
+        console.error('导航错误:', e);
+        // 出错时默认跳转到首页
+        uni.switchTab({ url: '/pages/home' });
+      }
     }, 2000);
 
   } catch (error) {
-    console.error('发布失败:', error);
+    console.error('发布失败详情:', error);
 
     let errorMessage = '发布失败，请重试';
+    
+    // 使用类型断言和类型保护安全地处理错误
     if (error instanceof Error) {
-      if (error.message.includes('网络')) {
+      // 标准Error对象
+      errorMessage = error.message;
+      
+      if (errorMessage.includes('网络')) {
         errorMessage = '网络连接失败，请检查网络';
-      } else if (error.message.includes('HTTP')) {
-        errorMessage = '服务器错误，请稍后重试';
+      } else if (errorMessage.includes('HTTP')) {
+        errorMessage = `服务器错误: ${errorMessage}`;
+      } else if (errorMessage.includes('401') || errorMessage.includes('未授权') || errorMessage.includes('未登录')) {
+        errorMessage = '请先登录后再发布商品';
+        // 可以在这里添加跳转到登录页的逻辑
+      }
       } else {
-        errorMessage = error.message || errorMessage;
+      // 处理非标准错误对象
+      const unknownError = error as any;
+      if (unknownError && typeof unknownError === 'object' && 'message' in unknownError) {
+        errorMessage = String(unknownError.message);
       }
     }
 
@@ -556,8 +642,6 @@ const publishProduct = async () => {
     });
   } finally {
     isPublishing.value = false;
-    uploadProgress.value = 0;
-    uploadingImageIndex.value = 0;
   }
 };
 
@@ -572,8 +656,6 @@ const resetForm = () => {
     categoryId: 8 // 默认分类ID为8（其他）
   };
   imageList.value = [];
-  uploadProgress.value = 0;
-  uploadingImageIndex.value = 0;
 };
 
 // 保存草稿
@@ -647,12 +729,75 @@ const clearDraft = () => {
   }
 };
 
+// 检查图片URL是否包含可疑的未来日期
+const checkImageUrlDate = (url: string): boolean => {
+  if (!url || typeof url !== 'string') return true;
+  
+  // 查找URL中的日期格式 YYYY/MM/DD
+  const dateRegex = /\/(\d{4})\/(\d{2})\/(\d{2})\//;
+  const match = url.match(dateRegex);
+  
+  if (!match) return true; // 没有找到日期格式，认为没问题
+  
+  const year = parseInt(match[1]);
+  const month = parseInt(match[2]);
+  const day = parseInt(match[3]);
+  
+  // 获取当前日期
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  
+  // 检查日期是否在未来
+  if (year > currentYear + 1) { // 允许最多一年的误差
+    console.warn(`检测到可能的未来日期在图片URL中: ${year}/${month}/${day}，当前年份: ${currentYear}`);
+    return false;
+  }
+  
+  return true;
+}
+
 // 页面初始化
 onMounted(() => {
   // 预加载分类数据
   loadCategories();
+  
   // 加载草稿数据
   loadDraft();
+  
+  // 检查并恢复已上传的图片
+  try {
+    const uploadedImages: string[] = uni.getStorageSync('uploaded_images') || [];
+    if (uploadedImages.length > 0) {
+      console.log('找到之前上传的图片:', uploadedImages);
+      
+      // 检查草稿中是否已有图片，如果没有则考虑恢复之前的上传
+      if (imageList.value.length === 0 && !formData.value.productName) {
+        // 只在用户没有开始新的编辑时恢复
+        uni.showModal({
+          title: '恢复图片',
+          content: '是否恢复之前上传的图片？',
+          success: (res) => {
+            if (res.confirm) {
+              // 只添加最近的5张图片
+              const recentImages: string[] = uploadedImages.slice(-5);
+              
+              // 检查图片URL中是否有异常日期
+              const validImages: string[] = recentImages.filter((url: string) => checkImageUrlDate(url));
+              
+              if (validImages.length > 0) {
+                imageList.value = validImages;
+                console.log('已恢复之前上传的图片:', validImages);
+              } else {
+                console.warn('之前上传的图片URL可能有问题，未恢复');
+              }
+            }
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.error('恢复上传图片失败:', e);
+  }
 });
 </script>
 
@@ -824,13 +969,14 @@ onMounted(() => {
 /* 表单区域 */
 .form-section {
   background: white;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .form-item {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .form-item:last-child {
@@ -839,22 +985,24 @@ onMounted(() => {
 
 .form-label {
   display: block;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--text-secondary);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .form-input {
   display: block;
   width: 100%;
-  padding: 12px;
+  padding: 14px 16px;
+  min-height: 48px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   background: var(--input-background);
   color: var(--text-primary);
   font-size: 16px;
   box-sizing: border-box;
+  line-height: 1.6;
 }
 
 .form-input:focus {
@@ -866,8 +1014,8 @@ onMounted(() => {
 .form-textarea {
   display: block;
   width: 100%;
-  min-height: 100px;
-  padding: 12px;
+  min-height: 140px;
+  padding: 16px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   background: var(--input-background);
@@ -875,6 +1023,7 @@ onMounted(() => {
   font-size: 16px;
   resize: vertical;
   box-sizing: border-box;
+  line-height: 1.6;
 }
 
 .form-textarea:focus {
@@ -885,29 +1034,30 @@ onMounted(() => {
 
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  grid-template-columns: 3fr 2fr;
+  gap: 20px;
 }
 
-.form-item.half {
-  margin-bottom: 0;
-}
-
-.price-input-container {
+.price-input-wrapper {
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .price-symbol {
   position: absolute;
-  left: 12px;
+  left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-secondary);
+  color: #666;
   font-size: 16px;
+  font-weight: 500;
+  z-index: 1;
 }
 
 .price-input {
-  padding-left: 32px !important;
+  padding-left: 38px !important;
+  font-weight: 500;
 }
 
 /* 通用区域样式 */
@@ -1273,13 +1423,21 @@ onMounted(() => {
 /* 底部区域 */
 .footer {
   position: fixed;
-  bottom: 0;
   left: 0;
   right: 0;
+  bottom: 0;
+  width: 100%;
   background: #fff;
-  padding: 12px 20px 20px;
+  padding: 16px;
   border-top: 1px solid #f0f0f0;
-  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  z-index: 999;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* 确保在小屏幕上也固定在底部 */
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
 }
 
 .footer-tips {
@@ -1520,27 +1678,31 @@ onMounted(() => {
 .footer {
   position: sticky;
   bottom: 0;
-  padding: 16px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  padding: 10px 16px;
   background: var(--background-color);
   border-top: 1px solid var(--border-color);
+  box-sizing: border-box;
+  z-index: 100;
 }
 
 .publish-btn {
   display: flex !important;
   width: 100% !important;
-  height: 48px !important;
+  max-width: 550px !important;
+  height: 44px !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 8px !important;
   border: none !important;
-  border-radius: 12px !important;
+  border-radius: 8px !important;
   background: var(--primary-color) !important;
   color: white !important;
   font-size: 16px !important;
   font-weight: 700 !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3) !important;
+  margin: 0 auto !important;
 }
 
 .publish-btn:hover {
@@ -1616,6 +1778,7 @@ onMounted(() => {
 /* 主要内容区域 */
 .main-content {
   padding: 16px;
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); /* 为底部按钮留出更多空间 */
 }
 
 /* 图片上传区域 */
@@ -1779,22 +1942,23 @@ onMounted(() => {
 
 .form-label {
   display: block;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   color: var(--text-secondary);
-  margin-bottom: 4px;
+  margin-bottom: 10px;
 }
 
 .form-input {
   display: block;
   width: 100%;
-  padding: 12px;
+  padding: 12px 15px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   background: var(--input-background);
   color: var(--text-primary);
   font-size: 16px;
   box-sizing: border-box;
+  line-height: 1.6;
 }
 
 .form-input:focus {
@@ -1806,8 +1970,8 @@ onMounted(() => {
 .form-textarea {
   display: block;
   width: 100%;
-  min-height: 100px;
-  padding: 12px;
+  min-height: 120px;
+  padding: 15px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   background: var(--input-background);
@@ -1815,6 +1979,7 @@ onMounted(() => {
   font-size: 16px;
   resize: vertical;
   box-sizing: border-box;
+  line-height: 1.6;
 }
 
 .form-textarea:focus {
@@ -1852,7 +2017,8 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 12px;
+  min-height: 48px;
+  padding: 14px 16px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   background: var(--input-background);
@@ -1867,11 +2033,12 @@ onMounted(() => {
 .category-text {
   flex: 1;
   font-size: 16px;
+  line-height: 1.6;
   color: var(--text-primary);
 }
 
 .category-text.placeholder {
-  color: var(--text-secondary);
+  color: #9ca3af;
 }
 
 .category-arrow {
@@ -1955,5 +2122,20 @@ onMounted(() => {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* 设置placeholder文本样式，确保清晰可见 */
+.form-input::placeholder, 
+.form-textarea::placeholder {
+  color: #9ca3af;
+  font-size: 15px;
+  opacity: 1;
+  line-height: 1.4;
+}
+
+/* 调整价格输入框的内边距 */
+.price-input {
+  padding-left: 32px !important;
+  font-weight: 500;
 }
 </style>
