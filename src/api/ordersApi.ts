@@ -4,7 +4,8 @@ import { getToken } from "@/utils/auth";
 import type {
   CreateOrderPayload,
   GetOrdersParams,
-  OrderSummary
+  OrderSummary,
+  WeChatPayParams
 } from "./types/orderTypes";
 
 /**
@@ -83,10 +84,10 @@ const getMyOrder = (params: GetOrdersParams): Promise<OrderSummary[]> => {
 /**
  * @description 创建一个新订单（通常用于“立即购买”场景）
  * @summary 对应后端 API: POST /orders
- * @param {CreateOrderPayload} data 包含商品ID和购买数量的请求体
- * @returns {Promise<OrderSummary>} 返回一个 Promise，其解析值为新创建订单的摘要信息
+ * @param {CreateOrderPayload} data 包含商品ID、购买数量、地址ID等信息的请求体
+ * @returns {Promise<WeChatPayParams>} 返回一个 Promise，其解析值为微信支付所需的参数
  */
- const createOrder = (data: CreateOrderPayload): Promise<OrderSummary> => {
+ const createOrder = (data: CreateOrderPayload): Promise<WeChatPayParams> => {
   return new Promise((resolve, reject) => {
     const token = getToken();
 
@@ -107,7 +108,7 @@ const getMyOrder = (params: GetOrdersParams): Promise<OrderSummary[]> => {
         console.log('创建订单API响应:', response);
 
         if (response.statusCode === 201 || response.statusCode === 200) {
-          resolve(response.data as OrderSummary);
+          resolve(response.data as WeChatPayParams);
         } else if (response.statusCode === 401) {
           reject(new Error('认证失败，请重新登录'));
         } else if (response.statusCode === 400) {
@@ -128,7 +129,7 @@ const getMyOrder = (params: GetOrdersParams): Promise<OrderSummary[]> => {
 
 /**
  * @description 取消订单
- * @summary 对应后端 API: PUT /orders/{orderId}/cancel
+ * @summary 对应后端 API: POST /orders/{orderId}/cancel
  * @param {string} orderId 订单ID
  * @returns {Promise<void>} 返回一个 Promise，成功时无返回值
  */
@@ -143,7 +144,7 @@ const cancelOrder = (orderId: string): Promise<void> => {
 
     uni.request({
       url: `${config.baseURL}/orders/${orderId}/cancel`,
-      method: 'PUT',
+      method: 'POST',
       header: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`

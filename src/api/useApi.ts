@@ -8,6 +8,7 @@
 import config from "@/config";
 import { getToken } from "@/utils/auth";
 import type { AddFavoritePayload, UserProfile } from "./types/userTypes";
+import type { GetProductsParams, GetProductResponse } from "./types/productTypes";
 
 const getMyProfile = ():Promise<UserProfile> => {
 
@@ -207,5 +208,54 @@ const unfollowUser = (userId: string) => {
     });
 }
 
-export { addFavorite, getMyProfile, removeFavorite, followUser, unfollowUser };
+/**
+ * @description 获取当前用户的收藏商品列表
+ * @summary 对应后端 API: GET /users/me/favorites
+ * @param {GetProductsParams} params 查询参数，支持分页
+ * @returns {Promise<GetProductResponse>} 返回收藏的商品列表
+ */
+const getMyFavorites = (params: GetProductsParams = {}): Promise<GetProductResponse> => {
+    return new Promise((resolve, reject) => {
+        const token = getToken();
+
+        if (!token) {
+            reject(new Error('未登录，请先登录'));
+            return;
+        }
+
+        // 构建查询参数
+        const queryParams = {
+            page: params.page || 1,
+            size: params.size || 10,
+            ...params
+        };
+
+        uni.request({
+            url: `${config.baseURL}/users/me/favorites`,
+            method: 'GET',
+            data: queryParams,
+            header: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            success: (response) => {
+                console.log('获取收藏列表API响应:', response);
+
+                if (response.statusCode === 200) {
+                    resolve(response.data as GetProductResponse);
+                } else if (response.statusCode === 401) {
+                    reject(new Error('认证失败，请重新登录'));
+                } else {
+                    reject(new Error(`获取收藏列表失败: HTTP ${response.statusCode}`));
+                }
+            },
+            fail: (error) => {
+                console.error('获取收藏列表API请求失败:', error);
+                reject(new Error(`网络请求失败: ${error.errMsg || '未知错误'}`));
+            }
+        });
+    });
+};
+
+export { addFavorite, getMyProfile, removeFavorite, followUser, unfollowUser, getMyFavorites };
 

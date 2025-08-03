@@ -42,6 +42,21 @@ export interface OrderListResponse {
 export interface CreateOrderPayload {
   productId: string;
   quantity: number;
+  addressId: string;
+  phoneNumber?: string; // 可选，为本次订单指定的联系电话
+}
+
+/**
+ * 微信支付参数
+ */
+export interface WeChatPayParams {
+  appId: string;
+  timeStamp: string;
+  nonceStr: string;
+  packageVal: string;
+  signType: string;
+  paySign: string;
+  orderId: string;
 }
 
 

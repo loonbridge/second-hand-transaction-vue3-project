@@ -13,6 +13,7 @@ interface Config{
 const config: Record<string,Config> = {
     development: {
         baseURL: 'http://localhost:8080',
+        // baseURL: 'https://10ck4qg722204.vicp.fun',
         timeout: 30000,
         debug: true // 开发环境开启调试
     },

@@ -56,6 +56,22 @@
 				"navigationStyle": "custom"
 			}
 		}
+		,{
+			"path": "pages/my_published",
+			"style": {
+				"navigationBarTitleText": "我的发布",
+				"navigationStyle": "custom"
+			}
+		}
+		,{
+			"path": "pages/my_favorites",
+			"style": {
+				"navigationBarTitleText": "我的收藏",
+				"navigationStyle": "custom"
+			}
+		}
+		
+		
 	],
 	
 	"tabBar": {

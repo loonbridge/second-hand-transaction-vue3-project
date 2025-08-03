@@ -76,6 +76,15 @@
       />
     </template>
   </ProductDetailLayout>
+
+  <!-- 购买弹窗 -->
+  <PurchaseModal
+    v-if="product"
+    :visible="showPurchaseModal"
+    :product="product"
+    @close="closePurchaseModal"
+    @success="handlePurchaseSuccess"
+  />
 </template>
 
 <script setup lang="ts">
@@ -94,6 +103,7 @@ import SellerInfo from '@/components/common/productDetail/SellerInfo.vue';
 import ProductDescription from '@/components/common/productDetail/ProductDescription.vue';
 import ReviewList from '@/components/common/productDetail/ReviewList.vue';
 import BottomActions from '@/components/common/productDetail/BottomActions.vue';
+import PurchaseModal from '@/components/common/PurchaseModal.vue';
 
 // 响应式数据
 const product = ref<ProductDetail | null>(null);
@@ -108,6 +118,9 @@ const pageSize = 10;
 // 页面参数
 const productId = ref<string>('');
 const currentUserId = ref<string>('');
+
+// 购买弹窗相关
+const showPurchaseModal = ref(false);
 
 // 计算属性
 const isOwner = computed(() => {
@@ -124,7 +137,7 @@ const canAddReview = computed(() => {
 onMounted(() => {
   // 获取页面参数
   const pages = getCurrentPages();
-  const currentPage = pages[pages.length - 1];
+  const currentPage = pages[pages.length - 1] as any;
   const options = currentPage.options || {};
 
   productId.value = options.id || '';
@@ -234,7 +247,7 @@ const handleBackClick = () => {
 };
 
 // 图片点击（预览）
-const handleImageClick = (index: number, imageUrl: string) => {
+const handleImageClick = (index: number) => {
   if (product.value) {
     uni.previewImage({
       urls: product.value.imageUrls,
@@ -411,10 +424,28 @@ const handleWantIt = () => {
 
   if (!product.value) return;
 
-  // 跳转到订单确认页面或聊天页面
-  uni.navigateTo({
-    url: `/pages/order_confirm?productId=${product.value.productId}&quantity=1`
+  // 显示购买弹窗
+  showPurchaseModal.value = true;
+};
+
+// 关闭购买弹窗
+const closePurchaseModal = () => {
+  showPurchaseModal.value = false;
+};
+
+// 购买成功处理
+const handlePurchaseSuccess = (orderId: string) => {
+  uni.showToast({
+    title: '购买成功',
+    icon: 'success'
   });
+
+  // 跳转到订单详情页面
+  setTimeout(() => {
+    uni.navigateTo({
+      url: `/pages/order_detail?orderId=${orderId}`
+    });
+  }, 1500);
 };
 
 // 编辑商品
