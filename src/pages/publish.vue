@@ -2,12 +2,10 @@
   <view class="publish-page">
     <!-- 顶部导航 -->
     <view class="header">
-      <view class="header-left" @click="goBack">
-        <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor">
-          <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
-        </svg>
+      <view class="header-left">
+        <BackButton variant="default" @click="goBack" />
       </view>
-      <view class="header-title">发布商品</view>
+      <view class="header-title">{{ isEditMode ? '编辑商品' : '发布商品' }}</view>
       <view class="header-right"></view>
     </view>
 
@@ -139,12 +137,15 @@ import { createProductWithUrls, getCategories } from '@/api/productsApi';
 import type { Category, CreateProductPayload } from '@/api/types/productTypes';
 import { computed, onMounted, ref } from 'vue';
 import config from '@/config';
+import BackButton from '@/components/common/BackButton.vue';
 
 // 响应式数据
 const imageList = ref<string[]>([]);
 const isPublishing = ref<boolean>(false);
 const categories = ref<Category[]>([]);
 const isLoadingCategories = ref<boolean>(false);
+const isEditMode = ref<boolean>(false);
+const editProductId = ref<string>('');
 
 // 表单数据
 const formData = ref({
@@ -592,15 +593,22 @@ const publishProduct = async () => {
     // 重置表单数据
     resetForm();
 
-    // 发布成功后返回上一页
+    // 发布成功后跳转到商品详情页面
     setTimeout(() => {
       try {
-        const pages = getCurrentPages();
-        if (pages.length > 1) {
-      uni.navigateBack();
+        if (result && result.productId) {
+          // 跳转到新发布商品的详情页面
+          uni.redirectTo({
+            url: `/pages/product?id=${result.productId}`
+          });
         } else {
-          // 如果是从首页进入的发布页面，则跳转到首页
-          uni.switchTab({ url: '/pages/home' });
+          // 如果没有商品ID，则返回上一页或首页
+          const pages = getCurrentPages();
+          if (pages.length > 1) {
+            uni.navigateBack();
+          } else {
+            uni.switchTab({ url: '/pages/home' });
+          }
         }
       } catch (e) {
         console.error('导航错误:', e);
@@ -756,13 +764,56 @@ const checkImageUrlDate = (url: string): boolean => {
   return true;
 }
 
+// 检查编辑模式
+const checkEditMode = () => {
+  try {
+    const pages = getCurrentPages();
+    const currentPage = pages[pages.length - 1];
+    const options = (currentPage as any).options || {};
+
+    if (options.mode === 'edit' && options.id) {
+      isEditMode.value = true;
+      editProductId.value = options.id;
+      loadProductForEdit(options.id);
+    }
+  } catch (error) {
+    console.error('检查编辑模式失败:', error);
+  }
+};
+
+// 加载商品数据用于编辑
+const loadProductForEdit = async (productId: string) => {
+  try {
+    // 这里需要调用获取商品详情的API
+    // 暂时使用模拟数据，实际应该调用 getProductById
+    console.log('加载商品数据用于编辑:', productId);
+
+    // TODO: 实现加载商品数据的逻辑
+    uni.showToast({
+      title: '编辑模式开发中',
+      icon: 'none'
+    });
+  } catch (error) {
+    console.error('加载商品数据失败:', error);
+    uni.showToast({
+      title: '加载商品数据失败',
+      icon: 'none'
+    });
+  }
+};
+
 // 页面初始化
 onMounted(() => {
+  // 检查是否为编辑模式
+  checkEditMode();
+
   // 预加载分类数据
   loadCategories();
-  
-  // 加载草稿数据
-  loadDraft();
+
+  // 如果不是编辑模式，加载草稿数据
+  if (!isEditMode.value) {
+    loadDraft();
+  }
   
   // 检查并恢复已上传的图片
   try {

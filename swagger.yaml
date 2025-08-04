@@ -1,0 +1,1420 @@
+openapi: 3.0.3
+info:
+  title: "二手优选小程序 API V1.10"
+  description: "V1.10 版本根据详细的数据库设计，完善了订单和消息的数据模型。订单VO现包含完整的地址快照、卖家信息和生命周期时间戳，消息VO也增加了更新时间，使API响应的数据更全面、更准确。"
+  version: "1.10.0"
+servers:
+  - url: https://api.example.com/v1
+    description: 生产环境服务器
+
+tags:
+  - name: Auth
+    description: 用户认证
+  - name: Products
+    description: 商品相关操作
+  - name: Reviews
+    description: 商品评论相关操作
+  - name: Categories
+    description: 商品分类管理
+  - name: Users
+    description: 用户个人中心相关操作
+  - name: Addresses
+    description: 用户收货地址管理
+  - name: Orders
+    description: 订单管理与支付
+  - name: Notifications
+    description: 消息中心
+  - name: Files
+    description: 文件上传服务
+  - name: Admin
+    description: 管理员专属操作
+
+paths:
+  # ... (所有路径定义与上一版本V1.9保持一致)
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: "微信小程序登录"
+      description: "前端调用wx.login()获取code，发送给后端换取自定义登录态（JWT Token）。"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          description: "登录成功"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponseVO'
+  /products:
+    get:
+      tags:
+        - Products
+      summary: "获取商品列表（首页/搜索/我的发布）"
+      description: "通用商品列表接口。可通过关键词、分类、卖家ID进行筛选和分页。"
+      parameters:
+        - name: query
+          in: query
+          description: "搜索关键词"
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          description: "分类ID"
+          schema:
+            type: string
+        - name: sellerId
+          in: query
+          description: "卖家ID。传入 'me' 可查询当前登录用户的商品。"
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: "页码，从1开始"
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: "每页数量"
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: "成功返回商品分页列表"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListVO'
+    post:
+      tags:
+        - Products
+      summary: "发布新商品"
+      description: "发布新商品。客户端需要先通过 /files/upload 接口上传图片获得URL，然后将URL数组和其他商品信息一同提交。"
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+      responses:
+        "201":
+          description: "商品创建成功"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetailVO'
+        "400":
+          description: "请求参数错误"
+  /products/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: "商品ID"
+        schema:
+          type: string
+    get:
+      tags:
+        - Products
+      summary: "获取商品详情"
+      responses:
+        "200":
+          description: "成功返回商品详情"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetailVO'
+        "404":
+          description: "商品未找到"
+    put:
+      tags:
+        - Products
+      summary: "更新指定商品信息"
+      description: "完整更新一个商品的信息。客户端需要提供该商品的所有字段，包括处理好的图片URL数组。只有商品所有者可操作。"
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductRequest'
+      responses:
+        "200":
+          description: "商品更新成功"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetailVO'
+        "400":
+          description: "请求参数错误"
+        "403":
+          description: "无权限操作（非商品所有者）"
+        "404":
+          description: "商品未找到"
+    delete:
+      tags:
+        - Products
+      summary: "删除指定商品"
+      description: "永久删除一个商品。只有商品的所有者才能执行此操作。"
+      security:
+        - BearerAuth: []
+      responses:
+        "204":
+          description: "商品删除成功，无返回内容"
+        "403":
+          description: "无权限操作（非商品所有者）"
+        "404":
+          description: "商品未找到"
+  /products/{productId}/reviews:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        description: "商品ID"
+        schema:
+          type: string
+    get:
+      tags:
+        - Reviews
+      summary: "获取商品的评论列表"
+      description: "获取指定商品下的所有评论，支持分页。"
+      parameters:
+        - name: page
+          in: query
+          description: "页码，从1开始"
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: "每页数量"
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: "成功返回评论分页列表"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewListVO'
+        "404":
+          description: "商品未找到"
+    post:
+      tags:
+        - Reviews
+      summary: "为商品创建一条新评论"
+      description: "为指定商品发布一条新评论。通常情况下，只有购买过该商品的用户才有权限评论（由后端业务逻辑控制）。"
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReviewRequest'
+      responses:
+        "201":
+          description: "评论创建成功"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewVO'
+        "400":
+          description: "请求参数错误（如评分超出范围）"
+        "403":
+          description: "无权限评论（例如，用户未购买此商品）"
+        "404":
+          description: "商品未找到"
+  /products/{productId}/reviews/{reviewId}:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        description: "商品ID"
+        schema:
+          type: string
+      - name: reviewId
+        in: path
+        required: true
+        description: "评论ID"
+        schema:
+          type: string
+    get:
+      tags:
+        - Reviews
+      summary: "获取单条评论详情"
+      description: "获取指定ID的评论的详细信息。"
+      responses:
+        "200":
+          description: "成功返回评论详情"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewVO'
+        "404":
+          description: "商品或评论未找到"
+    patch:
+      tags:
+        - Reviews
+      summary: "更新一条评论"
+      description: "更新指定评论的内容或评分。只有评论的作者才能执行此操作。"
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReviewRequest'
+      responses:
+        "200":
+          description: "评论更新成功"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewVO'
+        "403":
+          description: "无权限操作（非评论作者）"
+        "404":
+          description: "商品或评论未找到"
+    delete:
+      tags:
+        - Reviews
+      summary: "删除一条评论"
+      description: "删除一条评论。只有评论的作者或管理员才能执行此操作。"
+      security:
+        - BearerAuth: []
+      responses:
+        "204":
+          description: "评论删除成功，无返回内容"
+        "403":
+          description: "无权限操作（非评论作者或管理员）"
+        "404":
+          description: "商品或评论未找到"
+  /categories:
+    get:
+      tags:
+        - Categories
+      summary: "获取所有商品分类"
+      responses:
+        "200":
+          description: "成功返回分类列表"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CategoryVO'
+    post:
+      tags:
+        - Admin
+        - Categories
+      summary: "[Admin] 创建新分类"
+      description: "创建一个新的商品分类。此为管理员权限接口。"
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCategoryRequest'
+      responses:
+        "201":
+          description: "分类创建成功"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryVO'
+        "403":
+          description: "无权限操作"
+  /categories/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: "分类ID"
+        schema:
+          type: string
+    get:
+      tags:
+        - Categories
+      summary: "获取指定分类详情"
+      responses:
+        "200":
+          description: "成功返回分类详情"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryVO'
+        "404":
+          description: "分类未找到"
+    patch:
+      tags:
+        - Admin
+        - Categories
+      summary: "[Admin] 更新分类信息"
+      description: "更新一个已存在的商品分类。此为管理员权限接口。"
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCategoryRequest'
+      responses:
+        "200":
+          description: "分类更新成功"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryVO'
+        "403":
+          description: "无权限操作"
+        "404":
+          description: "分类未找到"
+    delete:
+      tags:
+        - Admin
+        - Categories
+      summary: "[Admin] 删除分类"
+      description: "删除一个商品分类。此为管理员权限接口。"
+      security:
+        - BearerAuth: []
+      responses:
+        "204":
+          description: "分类删除成功"
+        "403":
+          description: "无权限操作"
+        "404":
+          description: "分类未找到"
+  /users/me:
+    get:
+      tags:
+        - Users
+      summary: "获取当前用户信息"
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: "成功"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileVO'
+    patch:
+      tags:
+        - Users
+      summary: "更新当前用户信息"
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: "需要更新的用户字段"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        "200":
+          description: "更新成功"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileVO'
+        "400":
+          description: "请求数据无效"
+  /users/me/favorites:
+    get:
+      tags:
+        - Users
+      summary: "获取我的收藏列表"
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: "页码，从1开始"
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: "每页数量"
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: "成功返回收藏的商品列表"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListVO'
+    post:
+      tags:
+        - Users
+      summary: "添加商品到收藏夹"
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddFavoriteRequest'
+      responses:
+        "204":
+          description: "收藏成功，无返回内容"
+  /users/me/favorites/{productId}:
+    delete:
+      tags:
+        - Users
+      summary: "从收藏夹移除商品"
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          description: "商品ID"
+          schema:
+            type: string
+      responses:
+        "204":
+          description: "取消收藏成功，无返回内容"
+  /users/me/addresses:
+    get:
+      tags:
+        - Addresses
+      summary: "获取我的收货地址列表"
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: "成功返回地址列表"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddressVO'
+    post:
+      tags:
+        - Addresses
+      summary: "新增收货地址"
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAddressRequest'
+      responses:
+        "201":
+          description: "地址创建成功"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressVO'
+  /users/me/addresses/{addressId}:
+    parameters:
+      - name: addressId
+        in: path
+        required: true
+        description: "地址ID"
+        schema:
+          type: string
+    put:
+      tags:
+        - Addresses
+      summary: "更新收货地址"
+      description: "完整更新一个收货地址的信息。"
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAddressRequest'
+      responses:
+        "200":
+          description: "地址更新成功"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressVO'
+        "404":
+          description: "地址未找到"
+    delete:
+      tags:
+        - Addresses
+      summary: "删除收货地址"
+      security:
+        - BearerAuth: []
+      responses:
+        "204":
+          description: "地址删除成功"
+        "404":
+          description: "地址未找到"
+  /users/{id}/follow:
+    post:
+      tags:
+        - Users
+      summary: "关注用户"
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "被关注用户的ID"
+          schema:
+            type: string
+      responses:
+        "204":
+          description: "关注成功"
+    delete:
+      tags:
+        - Users
+      summary: "取消关注用户"
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "被取消关注用户的ID"
+          schema:
+            type: string
+      responses:
+        "204":
+          description: "取消关注成功"
+  /orders:
+    get:
+      tags:
+        - Orders
+      summary: "获取我的订单列表"
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          description: "订单状态: ToPay, ToShip, ToReceive, Completed, Canceled"
+          schema:
+            type: string
+            enum: [ToPay, ToShip, ToReceive, Completed, Canceled]
+        - name: page
+          in: query
+          description: "页码，从1开始"
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: "每页数量"
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: "成功返回订单分页列表"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderListVO'
+    post:
+      tags:
+        - Orders
+      summary: "创建订单并获取微信支付参数"
+      description: "用户从地址簿中选择一个地址创建订单。还可选择性提供一个phoneNumber来覆盖地址簿中的默认号码。后端会保存最终的地址和电话快照，并返回微信支付参数。"
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        "201":
+          description: "订单创建成功，返回支付所需参数"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeChatPayParamsVO'
+        "400":
+          description: "请求参数错误（如地址ID无效）或商品库存不足"
+  /orders/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: "订单ID"
+        schema:
+          type: string
+    get:
+      tags:
+        - Orders
+      summary: "获取订单详情"
+      description: "获取单个订单的详细信息，包括商品快照、买卖家信息、物流状态等。"
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: "成功返回订单详情"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetailVO'
+        "403":
+          description: "无权限查看（非订单相关方）"
+        "404":
+          description: "订单未找到"
+  /orders/{id}/cancel:
+    post:
+      tags:
+        - Orders
+      summary: "取消订单"
+      description: "用户取消一个尚未发货的订单。"
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "要取消的订单ID"
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "订单取消成功"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetailVO'
+        "403":
+          description: "无权限操作（非买家）"
+        "404":
+          description: "订单未找到"
+        "409":
+          description: "状态冲突（例如订单已发货，无法取消）"
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      summary: "获取消息列表"
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          description: "消息类型: system, transaction"
+          schema:
+            type: string
+            enum: [system, transaction]
+        - name: page
+          in: query
+          description: "页码，从1开始"
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: "每页数量"
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: "成功返回消息分页列表"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationListVO'
+  /notifications/delete-batch:
+    post:
+      tags:
+        - Notifications
+      summary: "批量删除消息 (使用POST)"
+      description: "根据提供的ID列表，删除多条消息。使用POST方法以符合OpenAPI规范。"
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteNotificationsRequest'
+      responses:
+        "204":
+          description: "批量删除成功"
+  /notifications/read-all:
+    post:
+      tags:
+        - Notifications
+      summary: "全部标记为已读"
+      description: "将当前用户的所有未读消息标记为已读。"
+      security:
+        - BearerAuth: []
+      responses:
+        "204":
+          description: "操作成功"
+  /notifications/{id}/read:
+    post:
+      tags:
+        - Notifications
+      summary: "将单条消息标记为已读"
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "消息ID"
+          schema:
+            type: string
+      responses:
+        "204":
+          description: "操作成功"
+        "404":
+          description: "消息未找到"
+  /notifications/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: "消息ID"
+        schema:
+          type: string
+    delete:
+      tags:
+        - Notifications
+      summary: "删除单条消息"
+      security:
+        - BearerAuth: []
+      responses:
+        "204":
+          description: "删除成功"
+        "404":
+          description: "消息未找到"
+  /files/upload:
+    post:
+      tags:
+        - Files
+      summary: "上传多个文件（如商品图片、用户头像）"
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: "要上传的文件列表。在Swagger UI或Postman中，您可以多次选择此字段来添加多个文件。"
+      responses:
+        "200":
+          description: "所有文件上传成功"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUploadResponseVO'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "在请求的Authorization头中添加'Bearer '前缀和Token，例如: 'Bearer ey...'"
+
+  schemas:
+    # -------------------
+    # Request Schemas
+    # -------------------
+    LoginRequest:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+          description: "微信登录凭证 wx.login() 获取的 code"
+          example: "0a3j4H1..."
+
+    CreateProductRequest:
+      type: object
+      required: [title, description, price, stock, categoryId, imageUrls]
+      properties:
+        title:
+          type: string
+          example: "九成新山地自行车"
+        description:
+          type: string
+          example: "详细描述一下你的宝贝吧..."
+        price:
+          type: number
+          format: float
+        stock:
+          type: integer
+          default: 1
+        categoryId:
+          type: string
+          example: "cat_digital"
+        imageUrls:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            format: uri
+
+    UpdateProductRequest:
+      type: object
+      required: [title, description, price, stock, categoryId, imageUrls]
+      properties:
+        title:
+          type: string
+          example: "九成新山地自行车"
+        description:
+          type: string
+          example: "详细描述一下你的宝贝吧..."
+        price:
+          type: number
+          format: float
+        stock:
+          type: integer
+          default: 1
+        categoryId:
+          type: string
+          example: "cat_digital"
+        imageUrls:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            format: uri
+
+    CreateCategoryRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          description: "分类名称"
+          example: "数码产品"
+        iconUrl:
+          type: string
+          format: uri
+          description: "分类图标的URL (可选)"
+          example: "https://example.com/icons/digital.png"
+
+    UpdateCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: "新的分类名称"
+        iconUrl:
+          type: string
+          format: uri
+          description: "新的分类图标URL"
+
+    CreateReviewRequest:
+      type: object
+      required: [content, rating]
+      properties:
+        content:
+          type: string
+          description: "评论内容"
+          example: "这件夹克质量非常好，物超所值！"
+        rating:
+          type: integer
+          description: "评分，1到5之间的整数"
+          example: 5
+          minimum: 1
+          maximum: 5
+
+    UpdateReviewRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          description: "新的评论内容 (可选)"
+        rating:
+          type: integer
+          description: "新的评分 (可选)"
+          minimum: 1
+          maximum: 5
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        nickname:
+          type: string
+          description: "新昵称 (可选)"
+        avatarUrl:
+          type: string
+          format: uri
+          description: "新头像URL (可选, 前端需先调用文件上传接口)"
+
+    AddFavoriteRequest:
+      type: object
+      required: [productId]
+      properties:
+        productId:
+          type: string
+          description: "要收藏的商品ID"
+
+    CreateOrderRequest:
+      type: object
+      required: [productId, quantity, addressId]
+      properties:
+        productId:
+          type: string
+        quantity:
+          type: integer
+          default: 1
+        addressId:
+          type: string
+          description: "从用户地址簿中选择的地址ID"
+          example: "addr_12345"
+        phoneNumber:
+          type: string
+          description: "【可选】为本次订单指定的联系电话。如果提供，将覆盖所选地址中的默认电话。"
+          example: "13900139000"
+
+    DeleteNotificationsRequest:
+      type: object
+      required: [notificationIds]
+      properties:
+        notificationIds:
+          type: array
+          items:
+            type: string
+          description: "要删除的消息ID列表"
+          example: ["notif_123", "notif_456"]
+
+    CreateAddressRequest:
+      type: object
+      required: [receiverName, phoneNumber, address, isDefault]
+      properties:
+        receiverName:
+          type: string
+          example: "张三"
+        phoneNumber:
+          type: string
+          example: "13800138000"
+        address:
+          type: string
+          description: "详细地址，包括省市区街道等"
+          example: "上海市浦东新区世纪大道100号"
+        isDefault:
+          type: boolean
+          description: "是否为默认地址"
+          example: false
+
+    UpdateAddressRequest:
+      type: object
+      required: [receiverName, phoneNumber, address, isDefault]
+      properties:
+        receiverName:
+          type: string
+          example: "李四"
+        phoneNumber:
+          type: string
+          example: "13900139000"
+        address:
+          type: string
+          description: "详细地址，包括省市区街道等"
+          example: "北京市朝阳区建国路1号"
+        isDefault:
+          type: boolean
+          description: "是否为默认地址"
+          example: true
+
+    # -------------------
+    # View Object (VO) Schemas
+    # -------------------
+    LoginResponseVO:
+      type: object
+      properties:
+        token:
+          type: string
+          description: "JWT Token，后续请求需在Header中携带"
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        user:
+          $ref: '#/components/schemas/UserProfileVO'
+
+    FileUploadResponseVO:
+      type: object
+      properties:
+        urls:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: "文件的可访问URL"
+          example: [ "https://cdn.example.com/images/12345.jpg" ]
+
+    WeChatPayParamsVO:
+      type: object
+      description: "调用wx.requestPayment所需的支付参数"
+      properties:
+        appId:
+          type: string
+        timeStamp:
+          type: string
+          description: "时间戳，从1970年1月1日00:00:00至今的秒数"
+        nonceStr:
+          type: string
+          description: "随机字符串，不长于32位"
+        packageVal:
+          type: string
+          description: "统一下单接口返回的 prepay_id 参数值，格式：prepay_id=xxx"
+        signType:
+          type: string
+          description: "签名类型，默认为RSA"
+          example: "RSA"
+        paySign:
+          type: string
+          description: "签名"
+        orderId:
+          type: string
+          description: "本次支付关联的系统内部订单ID，可用于支付成功后的页面跳转"
+
+    UserProfileVO:
+      type: object
+      properties:
+        userId:
+          type: string
+          example: "user_12345678"
+        nickname:
+          type: string
+          example: "Emily Chen"
+        avatarUrl:
+          type: string
+          format: uri
+        joinDate:
+          type: string
+          format: date
+          example: "2021-01-01"
+
+    ProductSummaryVO:
+      type: object
+      properties:
+        productId:
+          type: string
+          example: "prod_123"
+        title:
+          type: string
+          example: "全新时尚连衣裙"
+        mainImageUrl:
+          type: string
+          format: uri
+          example: "https://example.com/dress.jpg"
+        price:
+          type: number
+          format: float
+          example: 85.00
+
+    ProductDetailVO:
+      type: object
+      properties:
+        productId:
+          type: string
+          example: "prod_456"
+        title:
+          type: string
+          example: "复古牛仔夹克"
+        description:
+          type: string
+          example: "经典牛仔夹克，状况良好。M 码。非常适合叠穿。"
+        price:
+          type: number
+          format: float
+          example: 150.00
+        imageUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+        stock:
+          type: integer
+          example: 1
+        sellerInfo:
+          $ref: '#/components/schemas/UserProfileVO'
+        isFavorite:
+          type: boolean
+          description: "当前用户是否已收藏该商品"
+          example: false
+        isFollowingSeller:
+          type: boolean
+          description: "当前用户是否已关注该卖家"
+          example: true
+        postedAt:
+          type: string
+          format: date-time
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewVO'
+
+    CategoryVO:
+      type: object
+      properties:
+        categoryId:
+          type: string
+          example: "cat_fashion"
+        name:
+          type: string
+          example: "时尚服饰"
+        iconUrl:
+          type: string
+          format: uri
+
+    AddressVO:
+      type: object
+      properties:
+        addressId:
+          type: string
+          example: "addr_12345"
+        receiverName:
+          type: string
+          example: "张三"
+        phoneNumber:
+          type: string
+          example: "138****8000"
+        address:
+          type: string
+          example: "上海市浦东新区世纪大道100号"
+        isDefault:
+          type: boolean
+
+    OrderDetailVO:
+      type: object
+      description: "订单的完整详细信息。"
+      properties:
+        orderId:
+          type: string
+          example: "order_789"
+        orderNumber:
+          type: string
+          example: "20250801102937001"
+        status:
+          type: string
+          description: "订单状态"
+          example: "ToShip"
+        totalPrice:
+          type: number
+          format: float
+          example: 150.00
+        productSnapshot:
+          description: "下单时刻的商品信息快照。"
+          $ref: '#/components/schemas/ProductDetailVO'
+        sellerInfo:
+          $ref: '#/components/schemas/UserProfileVO'
+        buyerInfo:
+          $ref: '#/components/schemas/UserProfileVO'
+        shippingInfo:
+          type: object
+          properties:
+            receiverName:
+              type: string
+              description: "下单时保存的收件人姓名快照"
+              example: "张三"
+            phoneNumber:
+              type: string
+              description: "下单时保存的手机号快照"
+              example: "13800138000"
+            address:
+              type: string
+              description: "下单时保存的收货地址快照"
+              example: "上海市浦东新区世纪大道100号"
+            trackingNumber:
+              type: string
+              nullable: true
+              example: "SF123456789"
+            carrier:
+              type: string
+              nullable: true
+              example: "顺丰速运"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        paidAt:
+          type: string
+          format: date-time
+          nullable: true
+        shippedAt:
+          type: string
+          format: date-time
+          nullable: true
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        canceledAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    OrderSummaryVO:
+      type: object
+      description: "订单摘要信息。由于业务规则为一次只购买一件商品，该结构已扁平化，直接包含商品信息。"
+      properties:
+        orderId:
+          type: string
+          description: "系统内部的订单ID"
+          example: "order_789"
+        status:
+          type: string
+          description: "订单状态"
+          example: "ToShip"
+        totalPrice:
+          type: number
+          format: float
+          description: "订单总金额，等于 priceAtPurchase * quantity"
+          example: 150.00
+        productId:
+          type: string
+          description: "所购买的商品ID"
+          example: "prod_456"
+        productTitle:
+          type: string
+          description: "所购买的商品标题"
+          example: "复古牛仔夹克"
+        productMainImageUrl:
+          type: string
+          format: uri
+          description: "所购买的商品主图"
+        priceAtPurchase:
+          type: number
+          format: float
+          description: "下单时商品的单价快照"
+          example: 150.00
+        quantity:
+          type: integer
+          description: "购买数量"
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+
+    ReviewVO:
+      type: object
+      properties:
+        reviewId:
+          type: string
+          example: "rev_abc"
+        author:
+          $ref: '#/components/schemas/UserProfileVO'
+        content:
+          type: string
+          example: "很棒的夹克！和描述的一模一样。"
+        rating:
+          type: integer
+          description: "用户评分 (1-5)"
+          example: 5
+        createdAt:
+          type: string
+          format: date-time
+
+    NotificationVO:
+      type: object
+      properties:
+        notificationId:
+          type: string
+        type:
+          type: string
+          enum: [system, transaction]
+          example: "system"
+        title:
+          type: string
+          example: "您的商品已被下架"
+        content:
+          type: string
+          example: "由于违反社区规定，您的商品'违规商品名称'已被下架处理。"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        isRead:
+          type: boolean
+          example: false
+
+    # -------------------
+    # List Wrapper VOs
+    # -------------------
+    ProductListVO:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductSummaryVO'
+        totalPages:
+          type: integer
+        totalElements:
+          type: integer
+
+    ReviewListVO:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewVO'
+        totalPages:
+          type: integer
+        totalElements:
+          type: integer
+
+    OrderListVO:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderSummaryVO'
+        totalPages:
+          type: integer
+        totalElements:
+          type: integer
+
+    NotificationListVO:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationVO'
+        totalPages:
+          type: integer
+        totalElements:
+          type: integer

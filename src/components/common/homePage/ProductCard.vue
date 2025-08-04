@@ -26,13 +26,16 @@
 <script setup lang="ts">
 import type { ProductSummary } from '@/api/types/productTypes';
 
-defineProps<{
+const props = defineProps<{
     product: ProductSummary
 }>();
 
 const handleProductImageClick = () => {
-  console.log('Product image clicked');
-  // TODO: 实现产品图片点击逻辑，比如跳转到产品详情页
+  console.log('Product clicked:', props.product.productId);
+  // 跳转到商品详情页面
+  uni.navigateTo({
+    url: `/pages/product?id=${props.product.productId}`
+  });
 };
 </script>
 

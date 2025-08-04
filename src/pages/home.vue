@@ -102,12 +102,18 @@ const loadCategories = async () => {
     const categoriesData = await getCategories();
     categories.value = categoriesData;
     console.log('分类数据加载成功:', categoriesData);
-  } catch (error) {
+  } catch (error: any) {
     console.error('加载分类失败:', error);
-    uni.showToast({
-      title: '加载分类失败',
-      icon: 'none'
-    });
+
+    // 处理认证错误
+    if (error.message && error.message.includes('认证失败')) {
+      console.log('分类需要登录才能查看，使用默认分类');
+    } else {
+      uni.showToast({
+        title: error.message || '加载分类失败',
+        icon: 'none'
+      });
+    }
 
     // 使用默认分类数据作为备用
     categories.value = [
@@ -134,12 +140,30 @@ const loadProducts = async (params: { query?: string; categoryId?: string } = {}
 
     recommendProducts.value = response.items;
     console.log('商品数据加载成功:', response);
-  } catch (error) {
+  } catch (error: any) {
     console.error('加载商品失败:', error);
-    uni.showToast({
-      title: '加载商品失败',
-      icon: 'none'
-    });
+
+    // 处理认证错误
+    if (error.message && error.message.includes('认证失败')) {
+      uni.showModal({
+        title: '需要登录',
+        content: '请先登录后查看商品列表',
+        confirmText: '去登录',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            uni.navigateTo({
+              url: '/pages/login'
+            });
+          }
+        }
+      });
+    } else {
+      uni.showToast({
+        title: error.message || '加载商品失败',
+        icon: 'none'
+      });
+    }
   } finally {
     isLoading.value = false;
   }

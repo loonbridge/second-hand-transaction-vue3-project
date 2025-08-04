@@ -97,17 +97,15 @@ const navigateToPurchases = () => {
 
 // 导航到我的发布
 const navigateToPublished = () => {
-  uni.showToast({
-    title: '功能开发中',
-    icon: 'none'
+  uni.navigateTo({
+    url: '/pages/my_published'
   });
 };
 
 // 导航到我的收藏
 const navigateToFavorites = () => {
-  uni.showToast({
-    title: '功能开发中',
-    icon: 'none'
+  uni.navigateTo({
+    url: '/pages/my_favorites'
   });
 };
 

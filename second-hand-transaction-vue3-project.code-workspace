@@ -4,5 +4,30 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"[typescript]": {
+			"editor.defaultFormatter": "vscode.typescript-language-features",
+			"editor.codeActionsOnSave": {
+				"source.organizeImports": "never"
+			}
+		},
+		"[vue]": {
+			"editor.defaultFormatter": "Vue.volar",
+			"editor.codeActionsOnSave": {
+				"source.organizeImports": "never"
+			}
+		},
+		"[markdown]": {
+			"editor.unicodeHighlight.ambiguousCharacters": false,
+			"editor.unicodeHighlight.invisibleCharacters": false,
+			"diffEditor.ignoreTrimWhitespace": false,
+			"editor.wordWrap": "on",
+			"cSpell.fixSpellingWithRenameProvider": true,
+			"cSpell.advanced.feature.useReferenceProviderWithRename": true,
+			"cSpell.advanced.feature.useReferenceProviderRemove": "/^#+\\s/",
+			"editor.codeActionsOnSave": {
+				"source.organizeImports": "never"
+			}
+		}
+	}
 }
