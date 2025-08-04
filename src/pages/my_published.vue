@@ -10,11 +10,18 @@
 
       <!-- 商品列表 -->
       <view v-else-if="products.length > 0" class="products-container">
-        <PublishedProductCard
+        <ProductCard
           v-for="product in products"
           :key="product.productId"
           :product="product"
+          :show-status="true"
+          :show-actions="true"
+          :show-stock="true"
+          :show-time="true"
+          :actions="publishedActions"
+          card-type="published"
           @click="handleProductClick"
+          @action="handleProductAction"
         />
         
         <!-- 加载更多 -->
@@ -46,13 +53,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { getProducts } from '@/api/productsApi';
+import { getProducts, deleteProduct } from '@/api/productsApi';
 import { getUserInfo } from '@/utils/auth';
 import type { ProductSummary } from '@/api/types/productTypes';
 
 // 导入组件
 import PageLayout from '@/components/layout/PageLayout.vue';
-import PublishedProductCard from '@/components/common/myPublished/PublishedProductCard.vue';
+import ProductCard, { type ActionType, type CardAction } from '@/components/common/ProductCard.vue';
 
 // 响应式数据
 const products = ref<ProductSummary[]>([]);
@@ -61,6 +68,22 @@ const loadingMore = ref(false);
 const hasMore = ref(false);
 const currentPage = ref(1);
 const pageSize = 10;
+
+// 发布商品的操作按钮
+const publishedActions: CardAction[] = [
+  {
+    type: 'edit',
+    icon: 'compose',
+    color: '#ff6b35',
+    class: 'edit-btn'
+  },
+  {
+    type: 'delete',
+    icon: 'trash',
+    color: '#ff6b35',
+    class: 'delete-btn'
+  }
+];
 
 // 页面加载
 onMounted(() => {
@@ -89,7 +112,7 @@ const loadMyProducts = async (page: number = 1) => {
     const response = await getProducts({
       page,
       size: pageSize,
-      sellerId: userInfo.userId // 根据卖家ID筛选
+      sellerId: 'me' // 根据API文档，使用'me'获取当前用户的商品
     });
 
     if (page === 1) {
@@ -126,6 +149,20 @@ const handleProductClick = (product: ProductSummary) => {
   });
 };
 
+// 商品操作处理
+const handleProductAction = (actionType: ActionType, product: ProductSummary) => {
+  switch (actionType) {
+    case 'edit':
+      handleEditProduct(product);
+      break;
+    case 'delete':
+      handleDeleteProduct(product);
+      break;
+    default:
+      console.warn('未知的操作类型:', actionType);
+  }
+};
+
 // 加载更多
 const handleLoadMore = () => {
   if (hasMore.value && !loadingMore.value) {
@@ -135,8 +172,56 @@ const handleLoadMore = () => {
 
 // 去发布商品
 const handleGoToPublish = () => {
-  uni.navigateTo({
+  uni.switchTab({
     url: '/pages/publish'
+  });
+};
+
+// 编辑商品
+const handleEditProduct = (product: ProductSummary) => {
+  uni.navigateTo({
+    url: `/pages/edit_product?id=${product.productId}`
+  });
+};
+
+// 删除商品
+const handleDeleteProduct = (product: ProductSummary) => {
+  uni.showModal({
+    title: '确认删除',
+    content: `确定要删除商品"${product.title}"吗？此操作不可撤销。`,
+    confirmText: '删除',
+    confirmColor: '#ff4757',
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          // 调用删除商品API
+          await deleteProduct(product.productId);
+
+          // 从列表中移除
+          const index = products.value.findIndex(p => p.productId === product.productId);
+          if (index > -1) {
+            products.value.splice(index, 1);
+          }
+
+          uni.showToast({
+            title: '删除成功',
+            icon: 'success'
+          });
+
+          // 如果当前页面没有商品了，重新加载
+          if (products.value.length === 0 && currentPage.value > 1) {
+            currentPage.value = 1;
+            loadMyProducts(1);
+          }
+        } catch (error: any) {
+          console.error('删除商品失败:', error);
+          uni.showToast({
+            title: error.message || '删除失败',
+            icon: 'none'
+          });
+        }
+      }
+    }
   });
 };
 </script>

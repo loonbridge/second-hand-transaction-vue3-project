@@ -11,7 +11,12 @@
 
       <!-- 商品信息卡片 -->
       <view class="product-card">
-        <image :src="product.mainImageUrl" class="product-image" mode="aspectFill" />
+        <image
+          :src="product.imageUrls?.[0] || product.mainImageUrl || '/static/images/placeholder.png'"
+          class="product-image"
+          mode="aspectFill"
+          @error="handleImageError"
+        />
         <view class="product-details">
           <text class="product-title">{{ product.title }}</text>
           <view class="price-stock-row">
@@ -400,6 +405,11 @@ const handleWeChatPayment = async (payParams: WeChatPayParams): Promise<void> =>
     // 其他支付错误，重新抛出
     throw error;
   }
+};
+
+// 图片加载失败处理
+const handleImageError = () => {
+  console.log('商品图片加载失败，使用默认图片');
 };
 
 // 处理取消

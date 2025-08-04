@@ -50,13 +50,6 @@
 			}
 		},
 		{
-			"path": "pages/payment_test",
-			"style": {
-				"navigationBarTitleText": "支付测试",
-				"navigationStyle": "custom"
-			}
-		}
-		,{
 			"path": "pages/my_published",
 			"style": {
 				"navigationBarTitleText": "我的发布",
@@ -67,6 +60,13 @@
 			"path": "pages/my_favorites",
 			"style": {
 				"navigationBarTitleText": "我的收藏",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/edit_product",
+			"style": {
+				"navigationBarTitleText": "编辑商品",
 				"navigationStyle": "custom"
 			}
 		}
@@ -88,10 +88,7 @@
 				"text": "发布",
 				"pagePath": "pages/publish"
 			},
-			{
-				"text": "支付测试",
-				"pagePath": "pages/payment_test"
-			},
+			
 			{
 				"text": "消息",
 				"pagePath": "pages/notifications"

@@ -5,6 +5,14 @@ export interface ProductSummary{
     title: string;
     price: number;
     mainImageUrl: string;
+    // 可选字段，用于不同场景下的扩展信息
+    imageUrls?: string[];
+    stock?: number;
+    sellerInfo?: UserSummary;
+    postedAt?: string;
+    createdAt?: string;
+    // 收藏时间（仅在收藏列表中使用）
+    favoriteTime?: string;
 }
 
 export interface Review{
