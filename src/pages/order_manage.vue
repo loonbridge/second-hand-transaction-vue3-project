@@ -19,6 +19,7 @@
           v-for="order in filteredOrders"
           :key="order.orderId"
           :order="order"
+          :highlight="order.orderId === highlightOrderId"
           @product-click="handleProductClick"
           @action-click="handleActionClick"
         />
@@ -60,6 +61,7 @@ import { computed, onActivated, onMounted, ref } from 'vue';
 const activeTab = ref<OrderStatus | 'All'>('All');
 const orders = ref<OrderSummary[]>([]);
 const isLoading = ref(false);
+const highlightOrderId = ref<string>(''); // 需要高亮显示的订单ID
 
 // 确认对话框状态
 const confirmDialog = ref({
@@ -74,39 +76,44 @@ const confirmDialog = ref({
 
 // 计算属性 - 根据当前标签页过滤订单
 const filteredOrders = computed(() => {
+  console.log('🔍 [OrderManage] 过滤订单:', {
+    activeTab: activeTab.value,
+    totalOrders: orders.value.length
+  });
+
   if (activeTab.value === 'All') {
     return orders.value;
   }
 
-  // 处理状态映射（支持新旧两种状态格式）
-  return orders.value.filter(order => {
+  // 使用新的状态常量进行过滤
+  const filtered = orders.value.filter(order => {
     const orderStatus = order.status;
-    switch (activeTab.value) {
-      case 'ToPay':
-        return orderStatus === 'ToPay' || orderStatus === 'TO_PAY';
-      case 'ToShip':
-        return orderStatus === 'ToShip' || orderStatus === 'TO_SHIP';
-      case 'ToReceive':
-        return orderStatus === 'ToReceive' || orderStatus === 'TO_RECEIVE';
-      case 'Completed':
-        return orderStatus === 'Completed' || orderStatus === 'COMPLETED';
-      case 'Canceled':
-        return orderStatus === 'Canceled' || orderStatus === 'CANCELLED';
-      default:
-        return orderStatus === activeTab.value;
-    }
+    console.log('🔍 [OrderManage] 检查订单状态:', {
+      orderId: order.orderId,
+      orderStatus,
+      activeTab: activeTab.value
+    });
+
+    return orderStatus === activeTab.value;
   });
+
+  console.log('🔍 [OrderManage] 过滤结果:', {
+    activeTab: activeTab.value,
+    filteredCount: filtered.length
+  });
+
+  return filtered;
 });
 
 // 获取空状态提示信息
 const getEmptyMessage = (): string => {
   const messages: Record<OrderStatus | 'All', string> = {
     'All': '您还没有任何订单，快去购买商品吧！',
-    'ToPay': '您没有待付款的订单',
-    'ToShip': '您没有待发货的订单',
-    'ToReceive': '您没有待收货的订单',
-    'Completed': '您没有已完成的订单',
-    'Canceled': '您没有已取消的订单'
+    'TO_PAY': '您没有待付款的订单',
+    'TO_SHIP': '您没有待发货的订单',
+    'TO_RECEIVE': '您没有待收货的订单',
+    'COMPLETED': '您没有已完成的订单',
+    'CANCELED': '您没有已取消的订单'
   };
   return messages[activeTab.value] || '暂无相关订单';
 };
@@ -265,7 +272,29 @@ const handleAfterSales = (orderId: string) => {
 
 // 页面生命周期
 onMounted(() => {
+  // 获取页面参数
+  const pages = getCurrentPages();
+  const currentPage = pages[pages.length - 1];
+  const options = (currentPage as any).options || {};
+
+  // 设置初始标签页
+  if (options.tab) {
+    activeTab.value = options.tab as OrderStatus | 'All';
+  }
+
+  // 设置需要高亮的订单ID
+  if (options.highlight) {
+    highlightOrderId.value = options.highlight;
+  }
+
   loadOrders();
+
+  // 如果有高亮订单，3秒后清除高亮
+  if (highlightOrderId.value) {
+    setTimeout(() => {
+      highlightOrderId.value = '';
+    }, 3000);
+  }
 });
 
 onActivated(() => {

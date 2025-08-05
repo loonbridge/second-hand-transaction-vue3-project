@@ -3,7 +3,7 @@
     <!-- 商品封面图片 -->
     <view class="image-container">
       <image
-        :src="product.imageUrls?.[0] || product.mainImageUrl || '/static/images/placeholder.png'"
+        :src="imageUrl"
         mode="aspectFill"
         class="product-image"
         @error="handleImageError"
@@ -36,6 +36,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted, watch } from 'vue';
 import type { ProductSummary } from '@/api/types/productTypes';
 
 // Props
@@ -50,8 +51,44 @@ const emit = defineEmits<{
   delete: [product: ProductSummary];
 }>();
 
+// 计算图片URL并添加调试日志
+const imageUrl = computed(() => {
+  const product = props.product;
+
+  console.log('🔍 [PublishedProductCard] 调试商品图片URL:');
+  console.log('  - 商品ID:', product.productId);
+  console.log('  - 商品标题:', product.title);
+  console.log('  - imageUrls:', product.imageUrls);
+  console.log('  - imageUrls类型:', typeof product.imageUrls);
+  console.log('  - imageUrls长度:', product.imageUrls?.length);
+  console.log('  - imageUrls[0]:', product.imageUrls?.[0]);
+  console.log('  - mainImageUrl:', product.mainImageUrl);
+  console.log('  - mainImageUrl类型:', typeof product.mainImageUrl);
+
+  const finalUrl = product.imageUrls?.[0] || product.mainImageUrl || 'https://via.placeholder.com/300x300/f5f5f5/999999?text=暂无图片';
+  console.log('  - 最终使用的URL:', finalUrl);
+  console.log('  - URL来源:', product.imageUrls?.[0] ? 'imageUrls[0]' : product.mainImageUrl ? 'mainImageUrl' : '占位符');
+
+  return finalUrl;
+});
+
+// 监听product变化
+watch(() => props.product, (newProduct, oldProduct) => {
+  console.log('🔄 [PublishedProductCard] 商品数据变化:');
+  console.log('  - 旧商品:', oldProduct?.productId);
+  console.log('  - 新商品:', newProduct?.productId);
+  console.log('  - 新商品完整数据:', newProduct);
+}, { deep: true });
+
+// 组件挂载时输出调试信息
+onMounted(() => {
+  console.log('🚀 [PublishedProductCard] 组件挂载:');
+  console.log('  - 商品数据:', props.product);
+});
+
 // 卡片点击
 const handleCardClick = () => {
+  console.log('👆 [PublishedProductCard] 卡片点击:', props.product.productId);
   emit('click', props.product);
 };
 

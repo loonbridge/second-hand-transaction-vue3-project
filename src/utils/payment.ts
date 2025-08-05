@@ -102,11 +102,8 @@ const handlePaymentError = (error: any) => {
   // 处理不同的支付失败情况
   if (error.errMsg) {
     if (error.errMsg.includes('cancel') || error.errMsg.includes('用户取消')) {
-      uni.showToast({
-        title: '支付已取消',
-        icon: 'none',
-        duration: 2000
-      });
+      // 支付取消时不显示toast，由调用方处理
+      console.log('用户取消支付');
     } else if (error.errMsg.includes('fail')) {
       uni.showToast({
         title: '支付失败，请重试',

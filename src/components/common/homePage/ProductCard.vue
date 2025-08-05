@@ -24,14 +24,33 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted, watch } from 'vue';
 import type { ProductSummary } from '@/api/types/productTypes';
 
 const props = defineProps<{
     product: ProductSummary
 }>();
 
+// 组件挂载时输出调试信息
+onMounted(() => {
+  console.log('🚀 [HomeProductCard] 组件挂载:');
+  console.log('  - 商品ID:', props.product.productId);
+  console.log('  - 商品标题:', props.product.title);
+  console.log('  - mainImageUrl:', props.product.mainImageUrl);
+  console.log('  - mainImageUrl类型:', typeof props.product.mainImageUrl);
+  console.log('  - 商品完整数据:', props.product);
+});
+
+// 监听product变化
+watch(() => props.product, (newProduct, oldProduct) => {
+  console.log('🔄 [HomeProductCard] 商品数据变化:');
+  console.log('  - 旧商品:', oldProduct?.productId);
+  console.log('  - 新商品:', newProduct?.productId);
+  console.log('  - 新商品mainImageUrl:', newProduct?.mainImageUrl);
+}, { deep: true });
+
 const handleProductImageClick = () => {
-  console.log('Product clicked:', props.product.productId);
+  console.log('👆 [HomeProductCard] 商品点击:', props.product.productId);
   // 跳转到商品详情页面
   uni.navigateTo({
     url: `/pages/product?id=${props.product.productId}`

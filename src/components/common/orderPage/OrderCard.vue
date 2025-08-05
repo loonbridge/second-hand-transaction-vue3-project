@@ -1,5 +1,5 @@
 <template>
-  <view class="order-card">
+  <view class="order-card" :class="{ 'highlight': props.highlight }">
     <!-- 订单内容区域 -->
     <view class="order-content">
       <view class="order-info">
@@ -44,6 +44,10 @@
 
 <script setup lang="ts">
 import type { OrderStatus, OrderSummary } from '@/api/types/orderTypes';
+import {
+  getOrderStatusText,
+  getOrderStatusClass
+} from '@/utils/orderStatusUtils';
 
 // 定义操作类型
 type ActionType = 'cancel' | 'pay' | 'refund' | 'remind' | 'logistics' | 'service';
@@ -58,6 +62,7 @@ interface OrderAction {
 // 定义props
 const props = defineProps<{
   order: OrderSummary;
+  highlight?: boolean; // 是否高亮显示
 }>();
 
 // 定义事件
@@ -66,68 +71,30 @@ const emit = defineEmits<{
   actionClick: [action: ActionType, orderId: string];
 }>();
 
-// 获取订单状态显示文本
+// 获取订单状态显示文本（使用工具函数）
 const getStatusText = (status: OrderStatus): string => {
-  const statusMap: Record<string, string> = {
-    'ToPay': '待付款',
-    'TO_PAY': '待付款',
-    'ToShip': '待发货',
-    'TO_SHIP': '待发货',
-    'ToReceive': '待收货',
-    'TO_RECEIVE': '待收货',
-    'Completed': '已完成',
-    'COMPLETED': '已完成',
-    'Canceled': '已取消',
-    'CANCELLED': '已取消'
-  };
-  return statusMap[status] || status;
+  return getOrderStatusText(status);
 };
 
-// 获取订单状态样式类
+// 获取订单状态样式类（使用工具函数）
 const getStatusClass = (status: OrderStatus): string => {
-  const classMap: Record<string, string> = {
-    'ToPay': 'status-to-pay',
-    'TO_PAY': 'status-to-pay',
-    'ToShip': 'status-to-ship',
-    'TO_SHIP': 'status-to-ship',
-    'ToReceive': 'status-to-receive',
-    'TO_RECEIVE': 'status-to-receive',
-    'Completed': 'status-completed',
-    'COMPLETED': 'status-completed',
-    'Canceled': 'status-canceled',
-    'CANCELLED': 'status-canceled'
-  };
-  return classMap[status] || '';
+  return getOrderStatusClass(status);
 };
 
 // 根据订单状态获取可用操作
 const getOrderActions = (status: OrderStatus): OrderAction[] => {
+  console.log('⚡ [OrderCard] 获取订单操作:', status);
+
   const actionsMap: Record<string, OrderAction[]> = {
-    'ToPay': [
-      { type: 'cancel', label: '取消订单', primary: false },
-      { type: 'pay', label: '立即支付', primary: true }
-    ],
     'TO_PAY': [
       { type: 'cancel', label: '取消订单', primary: false },
       { type: 'pay', label: '立即支付', primary: true }
-    ],
-    'ToShip': [
-      { type: 'refund', label: '申请退款', primary: false },
-      { type: 'remind', label: '提醒发货', primary: false }
     ],
     'TO_SHIP': [
       { type: 'refund', label: '申请退款', primary: false },
       { type: 'remind', label: '提醒发货', primary: false }
     ],
-    'ToReceive': [
-      { type: 'logistics', label: '查看物流', primary: false },
-      { type: 'service', label: '申请售后', primary: false }
-    ],
     'TO_RECEIVE': [
-      { type: 'logistics', label: '查看物流', primary: false },
-      { type: 'service', label: '申请售后', primary: false }
-    ],
-    'Completed': [
       { type: 'logistics', label: '查看物流', primary: false },
       { type: 'service', label: '申请售后', primary: false }
     ],
@@ -135,10 +102,13 @@ const getOrderActions = (status: OrderStatus): OrderAction[] => {
       { type: 'logistics', label: '查看物流', primary: false },
       { type: 'service', label: '申请售后', primary: false }
     ],
-    'Canceled': [],
-    'CANCELLED': []
+    'CANCELED': []
   };
-  return actionsMap[status] || [];
+
+  const actions = actionsMap[status] || [];
+  console.log('⚡ [OrderCard] 可用操作:', { status, actions: actions.map(a => a.label) });
+
+  return actions;
 };
 
 // 商品点击处理
@@ -167,6 +137,22 @@ const handleActionClick = (actionType: ActionType) => {
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   margin-bottom: 1rem;
   overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.order-card.highlight {
+  border: 2px solid var(--primary-color);
+  box-shadow: 0 4px 12px 0 rgba(59, 130, 246, 0.15);
+  animation: highlight-pulse 2s ease-in-out;
+}
+
+@keyframes highlight-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
 }
 
 .order-content {

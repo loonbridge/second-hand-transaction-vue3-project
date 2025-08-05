@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 
 // Props
 const props = defineProps<{
@@ -53,8 +53,36 @@ const emit = defineEmits<{
 
 // 初始化加载状态
 onMounted(() => {
+  console.log('🚀 [ProductImageCarousel] 组件挂载:');
+  console.log('  - 图片URLs:', props.imageUrls);
+  console.log('  - 图片数量:', props.imageUrls?.length);
+  console.log('  - 图片URLs类型:', typeof props.imageUrls);
+
+  if (props.imageUrls && Array.isArray(props.imageUrls)) {
+    props.imageUrls.forEach((url, index) => {
+      console.log(`  - 图片${index + 1}:`, url);
+    });
+  }
+
   loadingStates.value = new Array(props.imageUrls.length).fill(true);
 });
+
+// 监听imageUrls变化
+watch(() => props.imageUrls, (newUrls, oldUrls) => {
+  console.log('🔄 [ProductImageCarousel] 图片URLs变化:');
+  console.log('  - 旧URLs:', oldUrls);
+  console.log('  - 新URLs:', newUrls);
+  console.log('  - 新URLs数量:', newUrls?.length);
+
+  if (newUrls && Array.isArray(newUrls)) {
+    newUrls.forEach((url, index) => {
+      console.log(`  - 新图片${index + 1}:`, url);
+    });
+  }
+
+  // 重新初始化加载状态
+  loadingStates.value = new Array(newUrls.length).fill(true);
+}, { deep: true });
 
 // 轮播图切换事件
 const handleSwiperChange = (event: any) => {

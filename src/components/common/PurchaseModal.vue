@@ -12,7 +12,7 @@
       <!-- 商品信息卡片 -->
       <view class="product-card">
         <image
-          :src="product.imageUrls?.[0] || product.mainImageUrl || '/static/images/placeholder.png'"
+          :src="imageUrl"
           class="product-image"
           mode="aspectFill"
           @error="handleImageError"
@@ -173,6 +173,29 @@ const emit = defineEmits<{
   close: [];
   success: [orderId: string];
 }>();
+
+// 计算图片URL并添加调试日志
+const imageUrl = computed(() => {
+  if (!props.product) return 'https://via.placeholder.com/300x300/f5f5f5/999999?text=暂无图片';
+
+  const product = props.product;
+
+  console.log('🔍 [PurchaseModal] 调试商品图片URL:');
+  console.log('  - 商品ID:', product.productId);
+  console.log('  - 商品标题:', product.title);
+  console.log('  - imageUrls:', product.imageUrls);
+  console.log('  - imageUrls类型:', typeof product.imageUrls);
+  console.log('  - imageUrls长度:', product.imageUrls?.length);
+  console.log('  - imageUrls[0]:', product.imageUrls?.[0]);
+  console.log('  - mainImageUrl:', product.mainImageUrl);
+  console.log('  - mainImageUrl类型:', typeof product.mainImageUrl);
+
+  const finalUrl = product.imageUrls?.[0] || product.mainImageUrl || 'https://via.placeholder.com/300x300/f5f5f5/999999?text=暂无图片';
+  console.log('  - 最终使用的URL:', finalUrl);
+  console.log('  - URL来源:', product.imageUrls?.[0] ? 'imageUrls[0]' : product.mainImageUrl ? 'mainImageUrl' : '占位符');
+
+  return finalUrl;
+});
 
 // 响应式数据
 const quantity = ref(1);
@@ -394,10 +417,11 @@ const handleWeChatPayment = async (payParams: WeChatPayParams): Promise<void> =>
     uni.hideLoading();
     console.error('支付处理失败:', error);
 
-    // 如果是用户取消支付，不需要额外处理
+    // 如果是用户取消支付，跳转到订单管理页面
     if (error && typeof error === 'object' && 'errMsg' in error) {
       const errMsg = (error as any).errMsg;
       if (errMsg && (errMsg.includes('cancel') || errMsg.includes('用户取消'))) {
+        handlePaymentCancel(payParams.orderId);
         return; // 用户取消支付，不抛出错误
       }
     }
@@ -405,6 +429,29 @@ const handleWeChatPayment = async (payParams: WeChatPayParams): Promise<void> =>
     // 其他支付错误，重新抛出
     throw error;
   }
+};
+
+// 处理支付取消
+const handlePaymentCancel = (orderId: string) => {
+  // 关闭购买弹窗
+  handleCancel();
+
+  // 显示取消提示
+  uni.showModal({
+    title: '支付已取消',
+    content: '订单已创建但未支付，您可以在"我的订单"中继续支付或取消订单。库存将在15分钟后自动释放。',
+    confirmText: '查看订单',
+    cancelText: '继续购物',
+    success: (res) => {
+      if (res.confirm) {
+        // 跳转到订单管理页面，并定位到待支付订单
+        uni.navigateTo({
+          url: `/pages/order_manage?tab=TO_PAY&highlight=${orderId}`
+        });
+      }
+      // 如果选择继续购物，则不做任何操作，用户可以继续浏览商品
+    }
+  });
 };
 
 // 图片加载失败处理
@@ -431,9 +478,18 @@ const resetFormData = () => {
   loading.value = false;
 };
 
+// 监听product变化
+watch(() => props.product, (newProduct, oldProduct) => {
+  console.log('🔄 [PurchaseModal] 商品数据变化:');
+  console.log('  - 旧商品:', oldProduct?.productId);
+  console.log('  - 新商品:', newProduct?.productId);
+  console.log('  - 新商品完整数据:', newProduct);
+}, { deep: true });
+
 // 监听弹窗显示状态
 watch(() => props.visible, (newVisible) => {
   if (newVisible) {
+    console.log('👁️ [PurchaseModal] Modal显示，商品数据:', props.product);
     // 重置数据
     resetFormData();
     // 加载地址

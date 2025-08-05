@@ -7,6 +7,12 @@
         <text class="price">{{ product.price }}</text>
       </view>
       <text class="product-title">{{ product.title }}</text>
+
+      <!-- 分类信息 -->
+      <view v-if="product.categoryName" class="category-section">
+        <text class="category-label">分类：</text>
+        <text class="category-name">{{ product.categoryName }}</text>
+      </view>
     </view>
 
     <!-- 商品基本信息 -->
@@ -143,6 +149,28 @@ const handleShareClick = () => {
   color: var(--text-primary);
   line-height: 1.4;
   word-break: break-word;
+  margin-bottom: 8px;
+}
+
+.category-section {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.category-label {
+  font-size: 14px;
+  color: #6b7280;
+  margin-right: 8px;
+}
+
+.category-name {
+  font-size: 14px;
+  color: #0b80ee;
+  background-color: rgba(11, 128, 238, 0.1);
+  padding: 4px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(11, 128, 238, 0.2);
 }
 
 .basic-info {

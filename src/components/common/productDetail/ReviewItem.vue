@@ -4,7 +4,7 @@
     <view class="reviewer-info">
       <view class="avatar-container">
         <image 
-          :src="review.author.avatarUrl || '/static/images/default-avatar.png'" 
+          :src="review.author.avatarUrl || 'https://via.placeholder.com/96x96/e5e7eb/9ca3af?text=头像'"
           mode="aspectFill" 
           class="reviewer-avatar"
           @error="handleAvatarError"

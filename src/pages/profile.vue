@@ -14,14 +14,17 @@
     <view class="main-content">
       <!-- 用户信息卡片 -->
       <view class="user-card">
-        <image
-          class="user-avatar"
-          :src="userInfo.avatar || defaultAvatar"
-          mode="aspectFill"
-        ></image>
+        <view class="avatar-container">
+          <image
+            class="user-avatar"
+            :src="displayUserInfo.avatarUrl"
+            mode="aspectFill"
+          ></image>
+        </view>
         <view class="user-info">
-          <text class="user-name">{{ userInfo.name || 'Emily Chen' }}</text>
-          <text class="user-id">ID: {{ userInfo.id || '12345678' }}</text>
+          <text class="user-name">{{ displayUserInfo.nickName }}</text>
+          <text class="user-id">{{ displayUserInfo.userIdDisplay }}</text>
+          <text v-if="displayUserInfo.location" class="user-location">{{ displayUserInfo.location }}</text>
         </view>
       </view>
 
@@ -75,18 +78,37 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
 import { clearLoginInfo, navigateToLogin } from '@/utils/auth';
-import { reactive } from 'vue';
+import {
+  getAppUserInfo,
+  getUserDisplayName,
+  getUserAvatarUrl,
+  getUserIdDisplay,
+  formatUserLocation
+} from '@/utils/userStorage';
+import type { AppUserInfo } from '@/api/types/userTypes';
 
-// 用户信息数据
-const userInfo = reactive({
-  name: 'Emily Chen',
-  id: '12345678',
-  avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuACAcS620OuQ7teNZGC55c1Idr2sk7cB2kjdnfro4zfHBxOtiUJZBwAT0HA8RzySaPXtILMlFcw09RwPl_6nfWWjKlUzj54uzhlGTo4GErbPTVezOnZz9ajeJadcr15M5aiSAHiJgWPpKjH8Bp1cbZyep51uhi0x1jHN9JUbYo6D6tJLJbBDDdkBotihhVgXepIMC4u19aOam493p1LL7vt8G5umfYm_yjWzF8UTkSOy6jbW-PYpW7m_RniQZulINT0MCjYCCNa4d0'
+// 响应式数据
+const appUserInfo = ref<AppUserInfo | null>(null);
+
+// 计算属性
+const displayUserInfo = computed(() => {
+  const info = appUserInfo.value;
+  return {
+    nickName: getUserDisplayName(info),
+    avatarUrl: getUserAvatarUrl(info),
+    userIdDisplay: getUserIdDisplay(info),
+    location: info ? formatUserLocation(info) : ''
+  };
 });
 
-// 默认头像
-const defaultAvatar = 'https://via.placeholder.com/96';
+// 加载用户信息
+const loadUserInfo = () => {
+  console.log('🔍 [Profile] 加载用户信息');
+  appUserInfo.value = getAppUserInfo();
+  console.log('📱 [Profile] 当前用户信息:', appUserInfo.value);
+};
 
 // 导航到我的购买
 const navigateToPurchases = () => {
@@ -153,6 +175,14 @@ const handleLogout = () => {
     }
   });
 };
+
+// 组件挂载时初始化
+onMounted(() => {
+  console.log('🚀 [Profile] 个人资料页面挂载');
+
+  // 加载用户信息
+  loadUserInfo();
+});
 </script>
 
 <style scoped lang="scss">
@@ -220,13 +250,16 @@ const handleLogout = () => {
   margin-bottom: 24px;
 }
 
+.avatar-container {
+  margin-bottom: 16px;
+}
+
 .user-avatar {
   width: 96px;
   height: 96px;
   border-radius: 50%;
   border: 4px solid #dce8f3;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  margin-bottom: 16px;
 }
 
 .user-info {
@@ -245,6 +278,13 @@ const handleLogout = () => {
   display: block;
   font-size: 14px;
   color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.user-location {
+  display: block;
+  font-size: 12px;
+  color: #9ca3af;
 }
 
 /* 功能菜单 */
