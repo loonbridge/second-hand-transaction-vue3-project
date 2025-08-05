@@ -52,7 +52,12 @@
 				"navigationBarTitleText": "支付测试",
 				"navigationStyle": "custom"
 			}
-		}
+		},
+
+      {
+        "path": "pages/messagedetails"
+
+      }
 	],
 	
 	"tabBar": {
