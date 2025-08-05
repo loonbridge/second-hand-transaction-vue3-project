@@ -278,7 +278,14 @@ const getCategories = () => {
                 console.log('分类列表API响应:', response);
 
                 if (response.statusCode === 200) {
-                    resolve(response.data as Category[]);
+                    // 根据swagger文档，API返回格式为 {items: CategoryVO[]}
+                    const responseData = response.data;
+                    if (responseData && responseData.items && Array.isArray(responseData.items)) {
+                        resolve(responseData.items as Category[]);
+                    } else {
+                        // 如果响应格式不符合预期，尝试直接解析为数组
+                        resolve(responseData as Category[]);
+                    }
                 } else if (response.statusCode === 401) {
                     reject(new Error('认证失败，请重新登录'));
                 } else {

@@ -49,7 +49,7 @@ export interface CreateProductPayload {
     description: string;
     price: number;
     stock: number;
-    categoryId: string | number; // 修改为联合类型，兼容字符串和数字
+    categoryId: string; // 根据swagger文档，categoryId为string类型
     imageUrls: string[];
 }
 

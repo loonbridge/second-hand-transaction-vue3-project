@@ -143,12 +143,12 @@ const loadCategories = async () => {
       });
     }
 
-    // 使用默认分类数据作为备用
+    // 使用默认分类数据作为备用（根据swagger文档，categoryId为string类型）
     categories.value = [
-      { name: '时尚服饰', iconUrl: 'cart-filled', categoryId: 1 },
-      { name: '数码产品', iconUrl: 'pyq', categoryId: 2 },
-      { name: '家居用品', iconUrl: 'home', categoryId: 3 },
-      { name: '图书文具', iconUrl: 'compose', categoryId: 4 }
+      { name: '时尚服饰', iconUrl: 'cart-filled', categoryId: 'cat_fashion' },
+      { name: '数码产品', iconUrl: 'pyq', categoryId: 'cat_digital' },
+      { name: '家居用品', iconUrl: 'home', categoryId: 'cat_home' },
+      { name: '图书文具', iconUrl: 'compose', categoryId: 'cat_books' }
     ];
   }
 };

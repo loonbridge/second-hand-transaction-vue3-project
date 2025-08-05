@@ -137,7 +137,9 @@
               @click="selectCategory(category)"
             >
               <view class="category-icon">
-                <text class="category-emoji">{{ getCategoryEmoji(category.name) }}</text>
+                <!-- 使用API返回的iconUrl，如果没有则显示默认图标 -->
+                <image v-if="category.iconUrl" :src="category.iconUrl" class="category-image" mode="aspectFit" />
+                <text v-else class="category-emoji">📦</text>
               </view>
               <text class="category-name">{{ category.name }}</text>
             </view>
@@ -186,8 +188,8 @@ const formData = ref({
   productDescription: '',
   price: '',
   quantity: '1',
-  category: '其他', // 默认分类名称
-  categoryId: 8 // 默认分类ID为8（其他）
+  category: '', // 默认为空，等待用户选择
+  categoryId: '' // 默认为空，等待用户选择
 });
 
 // 移除不需要的选项和计算属性，简化表单
@@ -200,7 +202,7 @@ const isFormValid = computed(() => {
       parseFloat(formData.value.price) > 0 &&
       parseInt(formData.value.quantity) > 0 &&
       formData.value.category.trim() !== '' &&
-      formData.value.categoryId > 0 &&
+      formData.value.categoryId.trim() !== '' &&
       imageList.value.length > 0;
 });
 
@@ -340,16 +342,17 @@ const loadCategories = async () => {
       });
     }
 
-    // 如果API失败，使用默认分类
+    // 如果API失败，使用默认分类（根据swagger文档，categoryId为string类型）
+    // 默认分类不提供iconUrl，将使用默认图标
     categories.value = [
-      { categoryId: 1, name: '数码产品', iconUrl: '' },
-      { categoryId: 2, name: '服装配饰', iconUrl: '' },
-      { categoryId: 3, name: '家居用品', iconUrl: '' },
-      { categoryId: 4, name: '图书音像', iconUrl: '' },
-      { categoryId: 5, name: '运动户外', iconUrl: '' },
-      { categoryId: 6, name: '美妆护肤', iconUrl: '' },
-      { categoryId: 7, name: '母婴用品', iconUrl: '' },
-      { categoryId: 8, name: '其他', iconUrl: '' }
+      { categoryId: 'cat_digital', name: '数码产品', iconUrl: '' },
+      { categoryId: 'cat_fashion', name: '服装配饰', iconUrl: '' },
+      { categoryId: 'cat_home', name: '家居用品', iconUrl: '' },
+      { categoryId: 'cat_books', name: '图书音像', iconUrl: '' },
+      { categoryId: 'cat_sports', name: '运动户外', iconUrl: '' },
+      { categoryId: 'cat_beauty', name: '美妆护肤', iconUrl: '' },
+      { categoryId: 'cat_baby', name: '母婴用品', iconUrl: '' },
+      { categoryId: 'cat_other', name: '其他', iconUrl: '' }
     ];
   } finally {
     isLoadingCategories.value = false;
@@ -428,20 +431,7 @@ const selectCategory = (category: Category) => {
   });
 };
 
-// 获取分类对应的表情符号
-const getCategoryEmoji = (categoryName: string): string => {
-  const emojiMap: Record<string, string> = {
-    '数码产品': '📱',
-    '服装配饰': '👕',
-    '家居用品': '🏠',
-    '图书音像': '📚',
-    '运动户外': '⚽',
-    '美妆护肤': '💄',
-    '母婴用品': '🍼',
-    '其他': '📦'
-  };
-  return emojiMap[categoryName] || '📦';
-};
+
 
 // 移除新旧程度选择函数，因为已简化表单结构
 
@@ -662,7 +652,7 @@ const publishProduct = async () => {
       description: formData.value.productDescription,
       price: parseFloat(formData.value.price),
       stock: parseInt(formData.value.quantity),
-      categoryId: String(formData.value.categoryId || 8),
+      categoryId: formData.value.categoryId, // 已经是string类型，无需转换
       imageUrls: uploadResult.urls // 使用所有上传的图片URL
     };
 
@@ -751,8 +741,8 @@ const resetForm = () => {
     productDescription: '',
     price: '',
     quantity: '1',
-    category: '其他', // 默认分类名称
-    categoryId: 8 // 默认分类ID为8（其他）
+    category: '', // 重置为空，等待用户选择
+    categoryId: '' // 重置为空，等待用户选择
   };
   imageList.value = [];
 };
@@ -798,8 +788,8 @@ const loadDraft = () => {
                 productDescription: draftData.productDescription || '',
                 price: draftData.price || '',
                 quantity: draftData.quantity || '1',
-                category: draftData.category || '其他',
-                categoryId: draftData.categoryId || 8
+                category: draftData.category || '',
+                categoryId: draftData.categoryId || ''
               };
               imageList.value = draftData.imageList || [];
               uni.showToast({
@@ -2339,6 +2329,11 @@ onMounted(() => {
 
 .category-emoji {
   font-size: 20px;
+}
+
+.category-image {
+  width: 20px;
+  height: 20px;
 }
 
 .category-name {
