@@ -69,9 +69,30 @@
 				"navigationBarTitleText": "编辑商品",
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/address_manage",
+			"style": {
+				"navigationBarTitleText": "地址管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/order_cancel_demo",
+			"style": {
+				"navigationBarTitleText": "订单取消演示",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/address_demo",
+			"style": {
+				"navigationBarTitleText": "地址管理演示",
+				"navigationStyle": "custom"
+			}
 		}
-		
-		
+
+
 	],
 	
 	"tabBar": {

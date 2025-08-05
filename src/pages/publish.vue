@@ -77,9 +77,12 @@
         <view class="form-item">
           <text class="form-label">商品分类</text>
           <view class="category-selector" @click="showCategoryPicker">
-            <text class="category-text" :class="{ 'placeholder': !formData.category }">
-              {{ formData.category || '请选择分类' }}
-            </text>
+            <view class="category-content">
+              <text class="category-text" :class="{ 'placeholder': !formData.category }">
+                {{ formData.category || '请选择分类' }}
+              </text>
+              <text v-if="isLoadingCategories" class="loading-text">加载中...</text>
+            </view>
             <text class="category-arrow">></text>
           </view>
         </view>
@@ -109,6 +112,37 @@
                 min="1"
                 max="9999"
             />
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 分类选择模态框 -->
+    <view v-if="showCategoryModal" class="category-modal-overlay" @click="closeCategoryModal">
+      <view class="category-modal" @click.stop>
+        <view class="modal-header">
+          <text class="modal-title">选择商品分类</text>
+          <view class="modal-close" @click="closeCategoryModal">×</view>
+        </view>
+        <view class="modal-content">
+          <view v-if="isLoadingCategories" class="loading-container">
+            <text class="loading-text">加载分类中...</text>
+          </view>
+          <view v-else class="category-grid">
+            <view
+              v-for="category in categories"
+              :key="category.categoryId"
+              class="category-item"
+              :class="{ 'selected': formData.categoryId === category.categoryId }"
+              @click="selectCategory(category)"
+            >
+              <view class="category-icon">
+                <!-- 使用API返回的iconUrl，如果没有则显示默认图标 -->
+                <image v-if="category.iconUrl" :src="category.iconUrl" class="category-image" mode="aspectFit" />
+                <text v-else class="category-emoji">📦</text>
+              </view>
+              <text class="category-name">{{ category.name }}</text>
+            </view>
           </view>
         </view>
       </view>
@@ -146,6 +180,7 @@ const categories = ref<Category[]>([]);
 const isLoadingCategories = ref<boolean>(false);
 const isEditMode = ref<boolean>(false);
 const editProductId = ref<string>('');
+const showCategoryModal = ref<boolean>(false);
 
 // 表单数据
 const formData = ref({
@@ -153,8 +188,8 @@ const formData = ref({
   productDescription: '',
   price: '',
   quantity: '1',
-  category: '其他', // 默认分类名称
-  categoryId: 8 // 默认分类ID为8（其他）
+  category: '', // 默认为空，等待用户选择
+  categoryId: '' // 默认为空，等待用户选择
 });
 
 // 移除不需要的选项和计算属性，简化表单
@@ -167,7 +202,7 @@ const isFormValid = computed(() => {
       parseFloat(formData.value.price) > 0 &&
       parseInt(formData.value.quantity) > 0 &&
       formData.value.category.trim() !== '' &&
-      formData.value.categoryId > 0 &&
+      formData.value.categoryId.trim() !== '' &&
       imageList.value.length > 0;
 });
 
@@ -307,16 +342,17 @@ const loadCategories = async () => {
       });
     }
 
-    // 如果API失败，使用默认分类
+    // 如果API失败，使用默认分类（根据swagger文档，categoryId为string类型）
+    // 默认分类不提供iconUrl，将使用默认图标
     categories.value = [
-      { categoryId: 1, name: '数码产品', iconUrl: '' },
-      { categoryId: 2, name: '服装配饰', iconUrl: '' },
-      { categoryId: 3, name: '家居用品', iconUrl: '' },
-      { categoryId: 4, name: '图书音像', iconUrl: '' },
-      { categoryId: 5, name: '运动户外', iconUrl: '' },
-      { categoryId: 6, name: '美妆护肤', iconUrl: '' },
-      { categoryId: 7, name: '母婴用品', iconUrl: '' },
-      { categoryId: 8, name: '其他', iconUrl: '' }
+      { categoryId: 'cat_digital', name: '数码产品', iconUrl: '' },
+      { categoryId: 'cat_fashion', name: '服装配饰', iconUrl: '' },
+      { categoryId: 'cat_home', name: '家居用品', iconUrl: '' },
+      { categoryId: 'cat_books', name: '图书音像', iconUrl: '' },
+      { categoryId: 'cat_sports', name: '运动户外', iconUrl: '' },
+      { categoryId: 'cat_beauty', name: '美妆护肤', iconUrl: '' },
+      { categoryId: 'cat_baby', name: '母婴用品', iconUrl: '' },
+      { categoryId: 'cat_other', name: '其他', iconUrl: '' }
     ];
   } finally {
     isLoadingCategories.value = false;
@@ -325,32 +361,77 @@ const loadCategories = async () => {
 
 // 显示分类选择器
 const showCategoryPicker = async () => {
-  // 确保分类数据已加载
-  if (categories.value.length === 0) {
-    await loadCategories();
-  }
+  console.log('点击分类选择器');
 
+  // 如果正在加载，显示提示
   if (isLoadingCategories.value) {
     uni.showToast({
-      title: '分类加载中...',
+      title: '分类加载中，请稍候...',
+      icon: 'loading',
+      duration: 1500
+    });
+    return;
+  }
+
+  // 确保分类数据已加载
+  if (categories.value.length === 0) {
+    console.log('分类数据为空，开始加载...');
+    try {
+      await loadCategories();
+    } catch (error) {
+      console.error('加载分类失败:', error);
+      uni.showToast({
+        title: '加载分类失败，请重试',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+  }
+
+  // 检查是否有分类数据
+  if (categories.value.length === 0) {
+    console.log('仍然没有分类数据');
+    uni.showToast({
+      title: '暂无分类数据',
       icon: 'none'
     });
     return;
   }
 
-  const categoryNames = categories.value.map(cat => cat.name);
+  console.log('显示分类模态框，分类数量:', categories.value.length);
+  // 显示分类选择模态框
+  showCategoryModal.value = true;
+};
 
-  uni.showActionSheet({
-    itemList: categoryNames,
-    success: (res) => {
-      const selectedCategory = categories.value[res.tapIndex];
-      formData.value.category = selectedCategory.name;
-      // 存储选中的分类ID，用于提交时使用
-      formData.value.categoryId = selectedCategory.categoryId;
-      console.log('选择分类:', selectedCategory.name, '分类ID:', selectedCategory.categoryId);
-    }
+// 关闭分类选择模态框
+const closeCategoryModal = () => {
+  showCategoryModal.value = false;
+};
+
+// 选择分类
+const selectCategory = (category: Category) => {
+  console.log('点击选择分类:', category);
+
+  formData.value.category = category.name;
+  formData.value.categoryId = category.categoryId;
+
+  console.log('选择分类:', category.name, '分类ID:', category.categoryId);
+  console.log('更新后的表单数据:', formData.value);
+
+  // 关闭模态框
+  showCategoryModal.value = false;
+  console.log('关闭模态框');
+
+  // 显示选择成功提示
+  uni.showToast({
+    title: `已选择：${category.name}`,
+    icon: 'success',
+    duration: 1500
   });
 };
+
+
 
 // 移除新旧程度选择函数，因为已简化表单结构
 
@@ -571,7 +652,7 @@ const publishProduct = async () => {
       description: formData.value.productDescription,
       price: parseFloat(formData.value.price),
       stock: parseInt(formData.value.quantity),
-      categoryId: String(formData.value.categoryId || 8),
+      categoryId: formData.value.categoryId, // 已经是string类型，无需转换
       imageUrls: uploadResult.urls // 使用所有上传的图片URL
     };
 
@@ -660,8 +741,8 @@ const resetForm = () => {
     productDescription: '',
     price: '',
     quantity: '1',
-    category: '其他', // 默认分类名称
-    categoryId: 8 // 默认分类ID为8（其他）
+    category: '', // 重置为空，等待用户选择
+    categoryId: '' // 重置为空，等待用户选择
   };
   imageList.value = [];
 };
@@ -707,8 +788,8 @@ const loadDraft = () => {
                 productDescription: draftData.productDescription || '',
                 price: draftData.price || '',
                 quantity: draftData.quantity || '1',
-                category: draftData.category || '其他',
-                categoryId: draftData.categoryId || 8
+                category: draftData.category || '',
+                categoryId: draftData.categoryId || ''
               };
               imageList.value = draftData.imageList || [];
               uni.showToast({
@@ -2074,22 +2155,42 @@ onMounted(() => {
   border-radius: 8px;
   background: var(--input-background);
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .category-selector:hover {
   border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.category-selector:active {
+  transform: scale(0.98);
+}
+
+.category-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 8px;
 }
 
 .category-text {
-  flex: 1;
   font-size: 16px;
   line-height: 1.6;
   color: var(--text-primary);
+  font-weight: 500;
 }
 
 .category-text.placeholder {
   color: #9ca3af;
+  font-weight: 400;
+}
+
+.loading-text {
+  font-size: 12px;
+  color: var(--primary-color);
+  font-weight: 400;
 }
 
 .category-arrow {
@@ -2097,6 +2198,154 @@ onMounted(() => {
   color: var(--text-secondary);
   transform: rotate(90deg);
   transition: transform 0.2s;
+  font-weight: bold;
+}
+
+.category-selector:hover .category-arrow {
+  color: var(--primary-color);
+  transform: rotate(90deg) scale(1.1);
+}
+
+/* 分类选择模态框 */
+.category-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.category-modal {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 400px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--background-color);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: #f5f5f5;
+  color: #666;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: #e5e5e5;
+  color: #333;
+}
+
+.modal-content {
+  padding: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.loading-container .loading-text {
+  font-size: 16px;
+  color: var(--primary-color);
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.category-item:hover {
+  border-color: var(--primary-color);
+  background: rgba(59, 130, 246, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.category-item.selected {
+  border-color: var(--primary-color);
+  background: rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.category-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background: rgba(59, 130, 246, 0.1);
+  margin-bottom: 8px;
+}
+
+.category-emoji {
+  font-size: 20px;
+}
+
+.category-image {
+  width: 20px;
+  height: 20px;
+}
+
+.category-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.category-item.selected .category-name {
+  color: var(--primary-color);
+  font-weight: 600;
 }
 
 /* 底部发布按钮 */

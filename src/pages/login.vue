@@ -64,11 +64,21 @@ const isLoading = ref(false);
 const handleWechatLogin = async () => {
   if (isLoading.value) return;
 
+  console.log('👆 [Login] 用户点击微信登录');
   isLoading.value = true;
 
   try {
-    // 调用登录API（内部会自动获取微信code）
+    // 调用登录API（内部会自动获取微信code和用户信息）
+    console.log('🔄 [Login] 开始登录流程');
     const response: LoginResponse = await login();
+
+    console.log('✅ [Login] 登录API调用成功:', {
+      hasToken: !!response.token,
+      hasUser: !!response.user,
+      hasWechatUserInfo: !!(response as any).wechatUserInfo,
+      userId: response.user?.userId,
+      nickname: response.user?.nickname
+    });
 
     // 登录成功，保存token和用户信息
     saveLoginInfo(response);
@@ -80,17 +90,34 @@ const handleWechatLogin = async () => {
       duration: 2000
     });
 
+    console.log('🎉 [Login] 登录成功，准备跳转到首页');
+
     // 延迟跳转到首页
     setTimeout(() => {
       navigateToHome();
     }, 1500);
 
   } catch (error: any) {
-    console.error('登录失败:', error);
+    console.error('❌ [Login] 登录失败:', error);
+
+    // 根据错误类型显示不同的提示
+    let errorMessage = '登录失败，请重试';
+
+    if (error.message) {
+      if (error.message.includes('用户拒绝授权')) {
+        errorMessage = '需要授权才能登录，请重试';
+      } else if (error.message.includes('网络')) {
+        errorMessage = '网络连接失败，请检查网络';
+      } else if (error.message.includes('隐私')) {
+        errorMessage = '请同意隐私政策后重试';
+      } else {
+        errorMessage = error.message;
+      }
+    }
 
     // 显示错误信息
     uni.showToast({
-      title: error.message || '登录失败，请重试',
+      title: errorMessage,
       icon: 'none',
       duration: 3000
     });

@@ -93,6 +93,8 @@ onMounted(() => {
 // 加载我的发布商品
 const loadMyProducts = async (page: number = 1) => {
   try {
+    console.log('🔍 [MyPublished] 开始加载我的发布商品:', { page, pageSize });
+
     if (page === 1) {
       isLoading.value = true;
     } else {
@@ -101,6 +103,7 @@ const loadMyProducts = async (page: number = 1) => {
 
     const userInfo = getUserInfo();
     if (!userInfo) {
+      console.log('❌ [MyPublished] 用户未登录');
       uni.showToast({
         title: '请先登录',
         icon: 'none'
@@ -108,12 +111,35 @@ const loadMyProducts = async (page: number = 1) => {
       return;
     }
 
+    console.log('👤 [MyPublished] 用户信息:', userInfo);
+
     // 获取当前用户发布的商品
     const response = await getProducts({
       page,
       size: pageSize,
       sellerId: 'me' // 根据API文档，使用'me'获取当前用户的商品
     });
+
+    console.log('✅ [MyPublished] API响应成功:');
+    console.log('  - 总页数:', response.totalPages);
+    console.log('  - 总商品数:', response.totalElements);
+    console.log('  - 当前页商品数:', response.items?.length);
+    console.log('  - 商品列表:', response.items);
+
+    if (response.items && Array.isArray(response.items)) {
+      response.items.forEach((item, index) => {
+        console.log(`  - 商品${index + 1}:`, {
+          id: item.productId,
+          title: item.title,
+          categoryId: item.categoryId,
+          categoryName: item.categoryName,
+          imageUrls: item.imageUrls,
+          mainImageUrl: item.mainImageUrl,
+          imageUrlsType: typeof item.imageUrls,
+          mainImageUrlType: typeof item.mainImageUrl
+        });
+      });
+    }
 
     if (page === 1) {
       products.value = response.items;
@@ -124,9 +150,12 @@ const loadMyProducts = async (page: number = 1) => {
     hasMore.value = page < response.totalPages;
     currentPage.value = page;
 
-    console.log('我的发布商品加载成功:', response);
+    console.log('📊 [MyPublished] 状态更新:');
+    console.log('  - 商品总数:', products.value.length);
+    console.log('  - 是否有更多:', hasMore.value);
+    console.log('  - 当前页码:', currentPage.value);
   } catch (error: any) {
-    console.error('加载我的发布商品失败:', error);
+    console.error('❌ [MyPublished] 加载我的发布商品失败:', error);
     uni.showToast({
       title: error.message || '加载失败',
       icon: 'none'

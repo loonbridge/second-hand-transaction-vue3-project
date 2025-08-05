@@ -31,13 +31,13 @@ const emit = defineEmits<{
   tabChange: [tab: OrderStatus | 'All']
 }>();
 
-// 标签页配置
+// 标签页配置 - 使用新的状态常量
 const tabs: TabItem[] = [
   { label: '全部', value: 'All' },
-  { label: '待付款', value: 'ToPay' },
-  { label: '待发货', value: 'ToShip' },
-  { label: '待收货', value: 'ToReceive' },
-  { label: '已完成', value: 'Completed' }
+  { label: '待付款', value: 'TO_PAY' },
+  { label: '待发货', value: 'TO_SHIP' },
+  { label: '待收货', value: 'TO_RECEIVE' },
+  { label: '已完成', value: 'COMPLETED' }
 ];
 
 // 标签页点击处理

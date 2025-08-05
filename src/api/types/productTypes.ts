@@ -5,6 +5,9 @@ export interface ProductSummary{
     title: string;
     price: number;
     mainImageUrl: string;
+    // 分类信息
+    categoryId: string;
+    categoryName: string;
     // 可选字段，用于不同场景下的扩展信息
     imageUrls?: string[];
     stock?: number;
@@ -30,6 +33,9 @@ export interface ProductDetail {
     price: number;
     imageUrls: string[];
     stock: number;
+    // 分类信息
+    categoryId: string;
+    categoryName: string;
     sellerInfo: UserSummary;
     isFavorite: boolean;
     isFollowingSeller: boolean;
@@ -43,13 +49,13 @@ export interface CreateProductPayload {
     description: string;
     price: number;
     stock: number;
-    categoryId: string | number; // 修改为联合类型，兼容字符串和数字
+    categoryId: string; // 根据swagger文档，categoryId为string类型
     imageUrls: string[];
 }
 
 
 export interface Category{
-    categoryId: number; // 修改为number类型，对应数据库的Long类型
+    categoryId: string; // 根据swagger文档，categoryId为string类型
     name: string;
     iconUrl: string;
 }

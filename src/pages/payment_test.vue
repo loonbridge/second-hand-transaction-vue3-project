@@ -161,14 +161,20 @@ const decreaseQuantity = () => {
 
 // 获取订单状态文本
 const getStatusText = (status: string) => {
+  console.log('🏷️ [PaymentTest] 获取状态文本:', status);
+
   const statusMap: Record<string, string> = {
-    'ToPay': '待支付',
-    'ToShip': '待发货',
-    'ToReceive': '待收货',
-    'Completed': '已完成',
-    'Canceled': '已取消'
+    'TO_PAY': '待支付',
+    'TO_SHIP': '待发货',
+    'TO_RECEIVE': '待收货',
+    'COMPLETED': '已完成',
+    'CANCELED': '已取消'
   };
-  return statusMap[status] || status;
+
+  const displayText = statusMap[status] || status;
+  console.log('🏷️ [PaymentTest] 状态文本映射:', { status, displayText });
+
+  return displayText;
 };
 
 // 测试创建订单

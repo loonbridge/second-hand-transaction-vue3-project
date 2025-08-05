@@ -74,6 +74,7 @@ onMounted(() => {
 const loadFavorites = async (page = 1) => {
   if (isLoading.value) return;
 
+  console.log('🔍 [MyFavorites] 开始加载收藏列表:', { page, pageSize });
   isLoading.value = true;
 
   try {
@@ -81,6 +82,27 @@ const loadFavorites = async (page = 1) => {
       page,
       size: pageSize
     });
+
+    console.log('✅ [MyFavorites] API响应成功:');
+    console.log('  - 总页数:', response.totalPages);
+    console.log('  - 总收藏数:', response.totalElements);
+    console.log('  - 当前页收藏数:', response.items?.length);
+    console.log('  - 收藏列表:', response.items);
+
+    if (response.items && Array.isArray(response.items)) {
+      response.items.forEach((item, index) => {
+        console.log(`  - 收藏${index + 1}:`, {
+          id: item.productId,
+          title: item.title,
+          categoryId: item.categoryId,
+          categoryName: item.categoryName,
+          imageUrls: item.imageUrls,
+          mainImageUrl: item.mainImageUrl,
+          imageUrlsType: typeof item.imageUrls,
+          mainImageUrlType: typeof item.mainImageUrl
+        });
+      });
+    }
 
     if (page === 1) {
       favorites.value = response.items || [];
@@ -91,9 +113,12 @@ const loadFavorites = async (page = 1) => {
     hasMore.value = page < (response.totalPages || 1);
     currentPage.value = page;
 
-    console.log('加载收藏列表成功:', response);
+    console.log('📊 [MyFavorites] 状态更新:');
+    console.log('  - 收藏总数:', favorites.value.length);
+    console.log('  - 是否有更多:', hasMore.value);
+    console.log('  - 当前页码:', currentPage.value);
   } catch (error: any) {
-    console.error('加载收藏列表失败:', error);
+    console.error('❌ [MyFavorites] 加载收藏列表失败:', error);
     uni.showToast({
       title: error.message || '加载失败',
       icon: 'none'

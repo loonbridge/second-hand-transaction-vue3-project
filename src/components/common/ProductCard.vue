@@ -3,7 +3,7 @@
     <!-- 商品封面图片 -->
     <view class="image-container">
       <image
-        :src="product.imageUrls?.[0] || product.mainImageUrl || '/static/images/placeholder.png'"
+        :src="imageUrl"
         mode="aspectFill"
         class="product-image"
         @error="handleImageError"
@@ -31,6 +31,12 @@
     <!-- 商品信息 -->
     <view class="product-info">
       <text class="product-title">{{ product.title }}</text>
+
+      <!-- 分类信息 -->
+      <view v-if="product.categoryName" class="category-info">
+        <text class="category-tag">{{ product.categoryName }}</text>
+      </view>
+
       <view class="product-meta">
         <text class="product-price">¥{{ product.price.toFixed(2) }}</text>
         <text v-if="showStock" class="stock-info">库存{{ product.stock }}件</text>
@@ -42,6 +48,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted, watch } from 'vue';
 import type { ProductSummary } from '@/api/types/productTypes';
 
 // 定义操作类型
@@ -79,6 +86,46 @@ const props = withDefaults(defineProps<{
   showTime: false,
   actions: () => [],
   cardType: 'default'
+});
+
+// 计算图片URL并添加调试日志
+const imageUrl = computed(() => {
+  const product = props.product;
+
+  console.log('🔍 [ProductCard] 调试商品信息:');
+  console.log('  - 卡片类型:', props.cardType);
+  console.log('  - 商品ID:', product.productId);
+  console.log('  - 商品标题:', product.title);
+  console.log('  - 分类ID:', product.categoryId);
+  console.log('  - 分类名称:', product.categoryName);
+  console.log('  - imageUrls:', product.imageUrls);
+  console.log('  - imageUrls类型:', typeof product.imageUrls);
+  console.log('  - imageUrls长度:', product.imageUrls?.length);
+  console.log('  - imageUrls[0]:', product.imageUrls?.[0]);
+  console.log('  - mainImageUrl:', product.mainImageUrl);
+  console.log('  - mainImageUrl类型:', typeof product.mainImageUrl);
+
+  const finalUrl = product.imageUrls?.[0] || product.mainImageUrl || 'https://via.placeholder.com/300x300/f5f5f5/999999?text=暂无图片';
+  console.log('  - 最终使用的URL:', finalUrl);
+  console.log('  - URL来源:', product.imageUrls?.[0] ? 'imageUrls[0]' : product.mainImageUrl ? 'mainImageUrl' : '占位符');
+
+  return finalUrl;
+});
+
+// 监听product变化
+watch(() => props.product, (newProduct, oldProduct) => {
+  console.log('🔄 [ProductCard] 商品数据变化:');
+  console.log('  - 卡片类型:', props.cardType);
+  console.log('  - 旧商品:', oldProduct?.productId);
+  console.log('  - 新商品:', newProduct?.productId);
+  console.log('  - 新商品完整数据:', newProduct);
+}, { deep: true });
+
+// 组件挂载时输出调试信息
+onMounted(() => {
+  console.log('🚀 [ProductCard] 组件挂载:');
+  console.log('  - 卡片类型:', props.cardType);
+  console.log('  - 商品数据:', props.product);
 });
 
 // 事件定义
@@ -241,12 +288,26 @@ const formatTime = (dateString?: string): string => {
   font-weight: 500;
   color: var(--text-primary);
   line-height: 1.4;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.category-info {
+  margin-bottom: 8px;
+}
+
+.category-tag {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--primary-color);
+  background-color: rgba(11, 128, 238, 0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(11, 128, 238, 0.2);
 }
 
 .product-meta {

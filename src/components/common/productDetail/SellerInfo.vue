@@ -9,7 +9,7 @@
       <view class="seller-profile">
         <view class="avatar-container">
           <image 
-            :src="seller.avatarUrl || '/static/images/default-avatar.png'" 
+            :src="seller.avatarUrl || 'https://via.placeholder.com/96x96/e5e7eb/9ca3af?text=头像'"
             mode="aspectFill" 
             class="seller-avatar"
             @error="handleAvatarError"

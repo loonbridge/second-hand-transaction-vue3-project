@@ -3,6 +3,8 @@
  */
 
 import type { LoginResponse } from '@/api/types/authTypes';
+import type { WechatUserInfo } from '@/api/types/userTypes';
+import { updateLoginStatus, updateWechatUserInfo } from './userStorage';
 
 /**
  * 保存登录信息到本地存储
@@ -10,11 +12,43 @@ import type { LoginResponse } from '@/api/types/authTypes';
  */
 export const saveLoginInfo = (loginResponse: LoginResponse) => {
   try {
+    console.log('💾 [Auth] 开始保存登录信息');
+
+    // 保存token和基础用户信息
     uni.setStorageSync('token', loginResponse.token);
     uni.setStorageSync('userInfo', loginResponse.user);
-    console.log('登录信息已保存到本地存储');
+
+    console.log('✅ [Auth] 基础登录信息已保存:', {
+      hasToken: !!loginResponse.token,
+      userId: loginResponse.user?.userId,
+      nickname: loginResponse.user?.nickname
+    });
+
+    // 更新应用用户信息的登录状态
+    updateLoginStatus(
+      true,
+      loginResponse.user?.userId,
+      loginResponse.user?.joinDate
+    );
+
+    // 如果有微信用户信息，也保存到应用用户信息中
+    const wechatUserInfo = (loginResponse as any).wechatUserInfo as WechatUserInfo;
+    if (wechatUserInfo) {
+      console.log('📱 [Auth] 保存微信用户信息:', {
+        nickName: wechatUserInfo.nickName,
+        hasAvatar: !!wechatUserInfo.avatarUrl,
+        gender: wechatUserInfo.gender,
+        location: `${wechatUserInfo.country} ${wechatUserInfo.province} ${wechatUserInfo.city}`
+      });
+
+      updateWechatUserInfo(wechatUserInfo);
+    } else {
+      console.log('⚠️ [Auth] 没有微信用户信息，仅保存基础登录信息');
+    }
+
+    console.log('🎉 [Auth] 所有登录信息保存完成');
   } catch (error) {
-    console.error('保存登录信息失败:', error);
+    console.error('❌ [Auth] 保存登录信息失败:', error);
   }
 };
 

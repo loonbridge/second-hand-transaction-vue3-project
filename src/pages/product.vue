@@ -164,12 +164,28 @@ onMounted(() => {
 // 加载商品详情
 const loadProductDetail = async () => {
   try {
-    console.log('加载商品详情:', productId.value);
+    console.log('🔍 [ProductDetail] 开始加载商品详情:', productId.value);
     const productData = await getProductById(productId.value);
     product.value = productData;
-    console.log('商品详情加载成功:', productData);
+
+    console.log('✅ [ProductDetail] 商品详情加载成功:');
+    console.log('  - 商品ID:', productData.productId);
+    console.log('  - 商品标题:', productData.title);
+    console.log('  - 分类ID:', productData.categoryId);
+    console.log('  - 分类名称:', productData.categoryName);
+    console.log('  - 图片URLs:', productData.imageUrls);
+    console.log('  - 图片URLs类型:', typeof productData.imageUrls);
+    console.log('  - 图片数量:', productData.imageUrls?.length);
+
+    if (productData.imageUrls && Array.isArray(productData.imageUrls)) {
+      productData.imageUrls.forEach((url, index) => {
+        console.log(`  - 图片${index + 1}:`, url);
+      });
+    }
+
+    console.log('  - 完整商品数据:', productData);
   } catch (error: any) {
-    console.error('加载商品详情失败:', error);
+    console.error('❌ [ProductDetail] 加载商品详情失败:', error);
 
     // 处理认证错误
     if (error.message && error.message.includes('认证失败')) {
@@ -415,14 +431,34 @@ const handleContactSeller = () => {
 // 我想要（咸鱼风格）
 const handleWantIt = () => {
   if (!currentUserId.value) {
-    uni.showToast({
+    uni.showModal({
       title: '请先登录',
-      icon: 'none'
+      content: '登录后才能购买商品',
+      confirmText: '去登录',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          uni.navigateTo({
+            url: '/pages/login'
+          });
+        }
+      }
     });
     return;
   }
 
   if (!product.value) return;
+
+  // 检查库存
+  if (product.value.stock <= 0) {
+    uni.showModal({
+      title: '商品已售罄',
+      content: '该商品暂时缺货，您可以关注其他类似商品。',
+      showCancel: false,
+      confirmText: '我知道了'
+    });
+    return;
+  }
 
   // 显示购买弹窗
   showPurchaseModal.value = true;

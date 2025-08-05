@@ -3,7 +3,7 @@
     <!-- 商品封面图片 -->
     <view class="image-container">
       <image 
-        :src="product.mainImageUrl || '/static/images/placeholder.png'" 
+        :src="product.mainImageUrl || 'https://via.placeholder.com/300x300/f5f5f5/999999?text=暂无图片'"
         mode="aspectFill" 
         class="product-image"
         @error="handleImageError"
